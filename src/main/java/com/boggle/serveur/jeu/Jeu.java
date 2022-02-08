@@ -2,6 +2,7 @@ package com.boggle.serveur.jeu;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import com.boggle.serveur.plateau.Grille;
@@ -9,15 +10,15 @@ import com.boggle.serveur.plateau.Mot;
 
 /** Fonctions relatives à la partie. */
 public class Jeu {
-    private HashMap<Joueur, ArrayList<Mot>> listeMots;
-    private ArrayList<Joueur> joueurs;
+    private HashMap<Joueur, HashSet<Mot>> listeMots;
+    private HashSet<Joueur> joueurs;
     private Grille grille;
     private int nombreManche;
-    private int mancheEffectuees;
+    private int manchesEffectuees;
 
     public Jeu (int nombreManche, Grille grille) {
         this.listeMots = new HashMap<>();
-        this.joueurs = new ArrayList<>();
+        this.joueurs = new HashSet<>();
         this.grille = grille;
         if(nombreManche < 1) {
             throw new IllegalArgumentException("La nombre de manches doit être supérieur ou égal à 1.");
@@ -30,7 +31,7 @@ public class Jeu {
      * @return true si toutes les manches ont été jouées, false sinon
      */
     public boolean partieFinie() {
-        return nombreManche == mancheEffectuees;
+        return nombreManche == manchesEffectuees;
 
     }
 
@@ -45,14 +46,14 @@ public class Jeu {
     }
 
     /**
-     * Ajoute un mot valide dans la liste de mot trouvés par
+     * Ajoute un mot valide dans la liste de mots trouvés par
      * le joueur.
      * @param mot mot qui a été trouvé
      * @param joueur joueur qui a trouvé le mot
      */
     public void ajouterMotTrouve(Mot mot, Joueur joueur) {
         if(!listeMots.containsKey(joueur)) {
-            listeMots.put(joueur, new ArrayList<>());
+            listeMots.put(joueur, new HashSet<>());
         }
         listeMots.get(joueur).add(mot);
     }
@@ -109,7 +110,7 @@ public class Jeu {
         joueurs.remove(joueur);
     }
 
-    public ArrayList<Joueur> getJoueurs() {
+    public HashSet<Joueur> getJoueurs() {
         return joueurs;
     }
 }
