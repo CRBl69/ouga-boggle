@@ -1,6 +1,7 @@
 package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.jeu.Langue;
+import com.boggle.serveur.dictionnaire.Dictionnaire;
 
 /** Plateau du jeu contenant les lettres. */
 public class Grille {
@@ -21,7 +22,10 @@ public class Grille {
         this.langue = switch(langue) {
             case FR -> new GenerateurLettreFR();
             case EN -> throw new UnsupportedOperationException("Unimplemented case: " + langue);
+            case ES -> throw new UnsupportedOperationException("Unimplemented case: " + langue);
+            case DE -> throw new UnsupportedOperationException("Unimplemented case: " + langue);
         };
+        Dictionnaire.genererArbre(langue);
         genGrille();
     }
 
