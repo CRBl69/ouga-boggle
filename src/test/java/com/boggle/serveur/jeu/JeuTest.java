@@ -8,7 +8,6 @@ import com.boggle.serveur.plateau.Coordonnee;
 import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
-import com.boggle.serveur.jeu.Langue;
 
 import org.junit.Test;
 
@@ -43,10 +42,10 @@ public class JeuTest {
         jeu.ajouterJoueur(joueur);
 
         LinkedList<Lettre> lettres = new LinkedList<>();
-        lettres.add(new Lettre(new Coordonnee(0, 0), "b"));
-        lettres.add(new Lettre(new Coordonnee(0, 1), "i"));
-        lettres.add(new Lettre(new Coordonnee(0, 2), "t"));
-        lettres.add(new Lettre(new Coordonnee(0, 3), "e"));
+        lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
+        lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
+        lettres.add(new Lettre(new Coordonnee(0, 2), "s"));
+        lettres.add(new Lettre(new Coordonnee(0, 3), "t"));
         Mot mot = new Mot(lettres);
 
         jeu.ajouterMotTrouve(mot, joueur);
@@ -63,10 +62,10 @@ public class JeuTest {
         jeu.ajouterJoueur(joueur2);
 
         LinkedList<Lettre> lettres = new LinkedList<>();
-        lettres.add(new Lettre(new Coordonnee(0, 0), "b"));
-        lettres.add(new Lettre(new Coordonnee(0, 1), "i"));
-        lettres.add(new Lettre(new Coordonnee(0, 2), "t"));
-        lettres.add(new Lettre(new Coordonnee(0, 3), "e"));
+        lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
+        lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
+        lettres.add(new Lettre(new Coordonnee(0, 2), "s"));
+        lettres.add(new Lettre(new Coordonnee(0, 3), "t"));
         Mot mot = new Mot(lettres);
 
         jeu.ajouterMotTrouve(mot, joueur1);

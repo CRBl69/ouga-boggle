@@ -12,17 +12,23 @@ import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.io.File;
 
+import com.boggle.serveur.jeu.Langue;
+
 /** Classe de vérification des mots. */
 public class Dictionnaire {
-    private static Arbre arbre;
+    private static Arbre arbre = null;
+    private static Langue langue;
 
     /**
      * Initialise le dictionnaire. Doit impérativement
      * être appelé avant d'utiliser le dictionnaire.
      */
     public static void genererArbre(Langue langue) {
-        var mots = listeDesMots(langue);
-        Dictionnaire.arbre = new Arbre(mots);
+        if(arbre == null || Dictionnaire.langue != langue) {
+            Dictionnaire.langue = langue;
+            var mots = listeDesMots(langue);
+            Dictionnaire.arbre = new Arbre(mots);
+        }
     }
 
     /**
@@ -83,14 +89,6 @@ public class Dictionnaire {
         }
         return null;
     }
-}
-
-// Temporaire, en attendant l'implémentation officielle.
-enum Langue {
-    FR,
-    DE,
-    ES,
-    EN
 }
 
 class Arbre {

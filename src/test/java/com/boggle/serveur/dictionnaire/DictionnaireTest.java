@@ -5,6 +5,8 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import com.boggle.serveur.jeu.Langue;
+
 /**
  * Test de la classe Dictionnaire.
  */
