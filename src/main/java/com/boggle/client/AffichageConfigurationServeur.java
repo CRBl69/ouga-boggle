@@ -5,7 +5,7 @@ import java.awt.*;
 
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Langue;
-import com.boggle.serveur.jeu.Serveur;
+import com.boggle.serveur.Serveur;
 /**
  * Affichage d'une fenêtre où se passe la sélection
  * des paramètres et initialisation de la configuration.

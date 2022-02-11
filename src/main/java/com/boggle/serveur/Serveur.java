@@ -6,9 +6,14 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.LinkedList;
+
 import com.google.gson.Gson;
 import com.boggle.serveur.jeu.ConfigurationServeur;
+import com.boggle.serveur.jeu.Jeu;
 import com.boggle.serveur.messages.*;
+import com.boggle.serveur.plateau.Grille;
+import com.boggle.serveur.plateau.Lettre;
 import com.boggle.util.Logger;
 
 /** Gère la communication avec tous les clients. */
@@ -18,10 +23,12 @@ public class Serveur {
     private ArrayList<Client> clients = new ArrayList<>();
     private String password;
     private Gson gson = new Gson();
+    private Jeu jeu;
 
     public Serveur(ConfigurationServeur c) throws IOException {
         this.password = c.mdp;
         serveur = new ServerSocket(c.port);
+        jeu = new Jeu(c.nbManches, new Grille(c.tailleGrilleV, c.tailleGrilleV, c.langue));
         demarerServeur();
     }
 
@@ -75,6 +82,19 @@ public class Serveur {
         }
     }
 
+    private void ajouterMot(NouveauMot nouveauMot) {
+        try {
+            LinkedList<Lettre> liste = new LinkedList<>();
+            for (Lettre l : nouveauMot.getLettres()) {
+                liste.add(l);
+            }
+            logger.info("Mot valide");
+            //jeu.ajouterMotTrouve(m);
+        } catch(IllegalArgumentException e) {
+            logger.error("Mot invalide");
+        }
+    }
+
     private class ClientHandler extends Thread {
         private Client client;
 
@@ -102,6 +122,8 @@ public class Serveur {
                         case "pasPret":
                             break;
                         case "mot":
+                            NouveauMot mot = gson.fromJson(data, NouveauMot.class);
+                            ajouterMot(mot);
                             break;
                         case "exit":
                             exit = true;

@@ -3,19 +3,22 @@ package com.boggle.client;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.Scanner;
 
 import com.boggle.serveur.jeu.ConfigurationClient;
 import com.boggle.util.ConnexionServeurException;
-import com.boggle.util.Mot;
+import com.boggle.serveur.plateau.Mot;
 
 /** La classe client qui communique avec le serveur */
 public class Client {
     private Scanner scanner = new Scanner(System.in);
     private Socket socket;
+    private ConfigurationClient config;
 
     public Client(ConfigurationClient c) throws ConnexionServeurException {
+        this.config = c;
         try {
             socket = new Socket(c.ip, c.port);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
@@ -39,16 +42,15 @@ public class Client {
                 }
             }
         } catch (IOException e) {
+            e.printStackTrace();
             throw new ConnexionServeurException("Erreur de connexion au serveur, vérifiez l'IP et le port.");
         }
 
     }
 
     private boolean poigneeDeMain(DataOutputStream dos, DataInputStream dis) throws IOException {
-        System.out.print("Nom d'utilisateur: ");
-        dos.writeUTF(scanner.nextLine());
-        System.out.print("\nMot de passe: ");
-        dos.writeUTF(scanner.nextLine());
+        dos.writeUTF(config.pseudo);
+        dos.writeUTF(config.mdp);
         String response = dis.readUTF();
 
         return response.equals("OK");

@@ -3,9 +3,9 @@ package com.boggle.util;
 import java.util.HashMap;
 
 public class Logger {
-    public static final int INFO = 10;
+    public static final int INFO = 30;
     public static final int WARN = 20;
-    public static final int ERROR = 30;
+    public static final int ERROR = 10;
     private final String tag;
     private final int level;
     private static HashMap<String, Logger> loggers = new HashMap<>();
