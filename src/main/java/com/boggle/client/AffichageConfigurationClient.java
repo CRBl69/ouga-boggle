@@ -1,53 +1,55 @@
 package com.boggle.client;
 
 import javax.swing.*;
+import java.awt.*;
 
 import com.boggle.serveur.jeu.ConfigurationClient;
 
 public class AffichageConfigurationClient extends JFrame {
-
-    private JPanel config = new JPanel();
 
     public AffichageConfigurationClient(){
 
         setTitle("OuGa-BoGgLe - Configuration de la partie");
         setSize(500, 500);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        String[][] labels = {
+            { "IP: ", "127.0.0.1" },
+            { "Port: ", "8080" },
+            { "Pseudo: ", "" },
+            { "Mot de passe: ", "" },
+        };
+        int paires = labels.length;
+
+        JPanel config = new JPanel(new GridLayout(8,1));
+        for (int i = 0; i < paires; i++) {
+            JPanel groupe = new JPanel();
+            JLabel label = new JLabel(labels[i][0], JLabel.TRAILING);
+            JTextField textField = new JTextField(labels[i][1], 5);
+            label.setLabelFor(textField);
+            groupe.add(label);
+            groupe.add(textField);
+            config.add(groupe);
+        }
         add(config);
 
-        JLabel ip = new JLabel("IP :");
-        JTextField caseIP = new JTextField("127.0.0.1");
-        caseIP.setColumns(20);
-        JLabel p = new JLabel("port :");
-        JTextField casePort = new JTextField("8080");
-        casePort.setColumns(5);
-        JLabel j = new JLabel("pseudo :");
-        JTextField casePseudo = new JTextField();
-        casePseudo.setColumns(10);
-        JLabel mp = new JLabel("mot de passe :");
-        JTextField caseMdp = new JTextField();
-        caseMdp.setColumns(10);
-
-        config.add(ip);
-        config.add(caseIP);
-        config.add(p);
-        config.add(casePort);
-        config.add(j);
-        config.add(casePseudo);
-        config.add(mp);
-        config.add(caseMdp);
-
-        JButton go = new JButton("Lancer la partie");
-        config.add(go);      
+        JButton go = new JButton("Rejoindre serveur");
+        add(go, BorderLayout.SOUTH);
 
         go.addActionListener(e -> {
 
             try {
+                if(
+                    ((JTextField)((JPanel)config.getComponent(0)).getComponent(1)).getText().length() == 0 ||
+                    ((JTextField)((JPanel)config.getComponent(2)).getComponent(1)).getText().length() == 0
+                ) {
+                    throw new Exception();
+                }
                 ConfigurationClient c = new ConfigurationClient(
-                    caseIP.getText(),
-                    Integer.parseInt(casePort.getText()),
-                    casePseudo.getText(),
-                    caseMdp.getText()
+                    ((JTextField)((JPanel)config.getComponent(0)).getComponent(1)).getText(),
+                    Integer.parseInt(((JTextField)((JPanel)config.getComponent(1)).getComponent(1)).getText()),
+                    ((JTextField)((JPanel)config.getComponent(2)).getComponent(1)).getText(),
+                    ((JTextField)((JPanel)config.getComponent(3)).getComponent(1)).getText()
                 );
                 new Client(c);
             } catch (Exception ex) {
