@@ -2,7 +2,7 @@ package com.boggle.serveur.jeu;
 
 /** Paramètre de la partie i.e nombre de joueur, le timer, etc... */
 public class ConfigurationServeur {
-    
+
     public final int port;
     public final int nbJoueurs;
     public final int nbManches;
@@ -22,5 +22,5 @@ public class ConfigurationServeur {
         this.langue = langue;
         this.mdp = mdp;
     }
-    
+
 }

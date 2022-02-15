@@ -1,52 +1,64 @@
 package com.boggle.serveur.jeu;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.Map;
+import java.util.List;
 
-import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
-import com.boggle.serveur.plateau.Mot;
 
 /** Fonctions relatives à la partie. */
 public class Jeu {
-    private HashMap<Joueur, HashSet<Mot>> listeMots;
     private HashSet<Joueur> joueurs;
-    private Grille grille;
-    private int nombreManche;
-    private int manchesEffectuees;
-    private Minuteur minuteur;
-    private ArrayList<Manche> manchesDeLaPartie;
+    private ArrayList<Manche> manches;
 
-    public Jeu (int nombreManche, Grille grille, Minuteur minuteur) {
-        this.listeMots = new HashMap<>();
+    // Parametres
+    private int nombreMancheTotal;
+    private int dureeManche;
+    private int tailleVerticale;
+    private int tailleHorizontale;
+    private Langue langue;
+
+    public Jeu (int nombreManche, int dureeManche, int tailleVerticale, int tailleHorizontale, Langue langue) {
         this.joueurs = new HashSet<>();
-        this.grille = grille;
-        this.manchesDeLaPartie = new ArrayList<>();
-        this.minuteur = minuteur;
+        this.manches = new ArrayList<>();
+        this.nombreMancheTotal = nombreManche;
+        this.dureeManche = dureeManche;
+        this.tailleHorizontale = tailleHorizontale;
+        this.tailleVerticale = tailleVerticale;
+        this.langue = langue;
         if(nombreManche < 1) {
             throw new IllegalArgumentException("La nombre de manches doit être supérieur ou égal à 1.");
         } else {
-            this.nombreManche = nombreManche;
+            this.nombreMancheTotal = nombreManche;
         }
+        if(dureeManche < 0) {
+            throw new IllegalArgumentException("La durée de la manche doit être supérieure ou égal à 0.");
+        } else {
+            this.dureeManche = dureeManche;
+        }
+        if(tailleHorizontale < 1) {
+            throw new IllegalArgumentException("La taille horizontale doit être supérieure ou égal à 1.");
+        } else {
+            this.tailleHorizontale = tailleHorizontale;
+        }
+        if(tailleVerticale < 1) {
+            throw new IllegalArgumentException("La taille verticale doit être supérieure ou égal à 1.");
+        } else {
+            this.tailleVerticale = tailleVerticale;
+        }
+    }
+
+    public void commencerPartie() {
+        nouvelleManche();
     }
 
     /**
      * @return true si toutes les manches ont été jouées, false sinon
      */
     public boolean partieFinie() {
-        return nombreManche == manchesEffectuees;
-
-    }
-
-    /**
-     * @return true si le timer a atteint 0 sinon false
-     */
-    public boolean mancheFinie() {
-        return minuteur.tempsEcoule();
+        return nombreMancheTotal == manches.size();
     }
 
     /**
@@ -57,86 +69,26 @@ public class Jeu {
      * valeur des manches effectuées
      */
     public void nouvelleManche() {
-        manchesDeLaPartie.add(new Manche(grille, listeMots, minuteur, getJoueurGagnant()));
-        grille = new Grille(grille.getColonne(), grille.getLigne(), grille.getLangueChoisi());
-        minuteur = new Minuteur(minuteur.getSec());
-        listeMots.clear();
-        manchesEffectuees++;
-
+        manches.add(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue));
     }
 
     /**
-     * Ajoute un mot valide dans la liste de mots trouvés par
-     * le joueur.
-     * @param mot mot qui a été trouvé
-     * @param joueur joueur qui a trouvé le mot
+     * @return les joueurs qui ont le plus de points
      */
-    public void ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
-        Mot mot = new Mot(lettre);
-        if(!listeMots.containsKey(joueur)) {
-            listeMots.put(joueur, new HashSet<>());
-        }
-        listeMots.get(joueur).add(mot);
-    }
-
-    /**
-     * @return null s'il n'y a pas de gagnant sinon 
-     * retourne le premier joueur qui a eu le plus de point
-     */
-    public Joueur getJoueurGagnant() {
-        Joueur joueurGagnant = null;
+    public List<Joueur> getJoueurGagnant() {
+        ArrayList<Joueur> joueursGagnants = new ArrayList<>();
+        HashMap<Joueur, Integer> pointsParJoueur = this.getPoints();
         int max = 0;
-        var points = getPoints();
-        for(Joueur joueur : points.keySet()) {
-            var pointsJoueur = points.get(joueur);
-            if(max < pointsJoueur) {
-                max = pointsJoueur;
-                joueurGagnant = joueur;
-            } else if(joueurGagnant != null && max == pointsJoueur ) {
-                var dernierMotGagnant = getdernierMotAjouter(joueurGagnant);
-                var dernierMotJoueur = getdernierMotAjouter(joueur);
-                
-                if(dernierMotJoueur.getId() < dernierMotGagnant.getId()) {
-                    joueurGagnant = joueur;
-                }
+        for(Joueur joueur: pointsParJoueur.keySet()) {
+            if(pointsParJoueur.get(joueur) == max) {
+                joueursGagnants.add(joueur);
+            } else if(pointsParJoueur.get(joueur) > max) {
+                max = pointsParJoueur.get(joueur);
+                joueursGagnants.clear();
+                joueursGagnants.add(joueur);
             }
         }
-        return joueurGagnant;
-    }
-
-    /**
-     * Parcours la liste de mots pour trouver le dernier mot que le joueur à ajouter
-     * @param joueur joueur dont on souhaite connaître le dernier mot
-     * @return le dernier mot ajouté dans la liste de mot
-     */
-    private Mot getdernierMotAjouter(Joueur joueur) {
-        return listeMots.get(joueur)
-                .stream()
-                .max(Comparator.comparing(Mot::getId))
-                .get();
-    }
-
-    /**
-     * Retourne les points de tous les joueurs.
-     * @return une map des points de tous les joueurs
-     */
-    public Map<Joueur, Integer> getPoints() {
-        Map<Joueur, Integer> points = new HashMap<>();
-        for(Joueur joueur : listeMots.keySet()) {
-            int acc = 0;
-            for(Mot mot : listeMots.get(joueur)) {
-                switch(mot.getLettres().size()){
-                    case 3:
-                    case 4: acc += 1; break;
-                    case 5: acc += 2; break;
-                    case 6: acc += 3; break;
-                    case 7: acc += 5; break;
-                    default: acc += 11; break;
-                }
-            }
-            points.put(joueur, acc);
-        }
-        return points;
+        return joueursGagnants;
     }
 
     public void ajouterJoueur(Joueur joueur) {
@@ -149,5 +101,37 @@ public class Jeu {
 
     public HashSet<Joueur> getJoueurs() {
         return joueurs;
+    }
+
+    /**
+     * @return la manche courante
+     */
+    private Manche getMancheCourante() {
+        return manches.get(manches.size() - 1);
+    }
+
+    /**
+     * @param lettre les lettres trouvés
+     * @param joueur joueur qui a trouvé les lettres
+     */
+    public void ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
+        getMancheCourante().ajouterMotTrouve(lettre, joueur);
+    }
+
+    public HashMap<Joueur, Integer> getPoints() {
+        HashMap<Joueur, Integer> pointsParJoueur = new HashMap<>();
+        for(Joueur joueur: joueurs) {
+            pointsParJoueur.put(joueur, 0);
+        }
+        for(var manche: manches) {
+            var points = manche.getPoints();
+            for(var joueur: points.keySet()) {
+                pointsParJoueur.put(
+                    joueur,
+                    pointsParJoueur.getOrDefault(joueur, 0) + points.get(joueur)
+                );
+            }
+        }
+        return pointsParJoueur;
     }
 }
