@@ -24,4 +24,8 @@ public class Coordonnee {
     public boolean estACoteDe(Coordonnee coord) {
         return Math.abs(this.x - coord.x) < 2 && Math.abs(this.y - coord.y) < 2;
     }
+
+    public boolean estSur (Coordonnee coord) {
+        return this.x == coord.x && this.y == coord.y;
+    }
 }

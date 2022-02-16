@@ -16,6 +16,11 @@ public class Lettre {
         this.lettre = lettre;
     }
 
+    public Lettre (String lettre) {
+        this.coord = null;
+        this.lettre = lettre;
+    }
+
     /**
      * Verifie si deux lettres sont adjacentes.
      *
@@ -24,5 +29,9 @@ public class Lettre {
      */
     public boolean estACoteDe(Lettre lettre) {
         return this.coord.estACoteDe(lettre.coord);
+    }
+
+    public boolean estSur (Lettre lettre) {
+        return this.coord.estSur(lettre.coord);
     }
 }
