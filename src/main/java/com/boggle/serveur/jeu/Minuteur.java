@@ -4,6 +4,7 @@ import java.util.Calendar;
 
 public class Minuteur {
     private final Calendar tempsFin;
+    private final int sec;
 
     /**
      * Constructeur.
@@ -11,6 +12,7 @@ public class Minuteur {
      * @param sec temps en secondes.
      */
     public Minuteur(int sec) {
+        this.sec = sec;
         tempsFin = Calendar.getInstance();
         tempsFin.set(Calendar.SECOND, tempsFin.get(Calendar.SECOND)+sec);
     }
@@ -34,5 +36,9 @@ public class Minuteur {
         if(tempsFin.getTimeInMillis()-Calendar.getInstance().getTimeInMillis() < 0) 
             return true;
         return false;
+    }
+
+    public int getSec() {
+        return sec;
     }
 }

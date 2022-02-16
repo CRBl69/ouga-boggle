@@ -1,23 +1,22 @@
 package com.boggle.serveur.jeu;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.LinkedList;
 
 import com.boggle.serveur.plateau.Coordonnee;
-import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
-import com.boggle.serveur.plateau.Mot;
 
 import org.junit.Test;
 
 public class JeuTest {
     @Test
     public void creationDeJeu() {
-        new Jeu(1, new Grille(4, 4, Langue.FR));
+        new Jeu(3, 60, 4, 4, Langue.FR);
 
         try {
-            new Jeu(-1, new Grille(4, 4, Langue.FR));
+            new Jeu(-1, -1, -1, -1, Langue.FR);
             assertTrue(false);
         } catch (IllegalArgumentException e) {
             assertTrue(true);
@@ -26,51 +25,53 @@ public class JeuTest {
 
     @Test
     public void ajouterJoueur() {
-        Jeu jeu = new Jeu(1, new Grille(4, 4, Langue.FR));
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR);
 
         jeu.ajouterJoueur(new Joueur("Bogdan"));
         assertTrue(jeu.getJoueurs().size() == 1);
 
         jeu.ajouterJoueur(new Joueur("Claire"));
-        assertTrue(jeu.getJoueurs().size() == 2);
+        assertEquals(2, jeu.getJoueurs().size());
     }
 
     @Test
     public void ajouterMotTrouve() {
-        Jeu jeu = new Jeu(1, new Grille(4, 4, Langue.FR));
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR);
         Joueur joueur = new Joueur("Bogdan");
         jeu.ajouterJoueur(joueur);
+
+        jeu.commencerPartie();
 
         LinkedList<Lettre> lettres = new LinkedList<>();
         lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
         lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
         lettres.add(new Lettre(new Coordonnee(0, 2), "s"));
         lettres.add(new Lettre(new Coordonnee(0, 3), "t"));
-        Mot mot = new Mot(lettres);
 
-        jeu.ajouterMotTrouve(mot, joueur);
+        jeu.ajouterMotTrouve(lettres, joueur);
 
-        assertTrue(jeu.getPoints().get(joueur) == 1);
+        assertEquals(1, (int)(jeu.getPoints().get(joueur)));
     }
 
     @Test
-    public void partieFinie() {
-        Jeu jeu = new Jeu(1, new Grille(4, 4, Langue.FR));
+    public void joueurGagnants() {
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR);
         Joueur joueur1 = new Joueur("Bogdan");
         Joueur joueur2 = new Joueur("Claire");
         jeu.ajouterJoueur(joueur1);
         jeu.ajouterJoueur(joueur2);
 
+        jeu.commencerPartie();
+
+        assertEquals(2, jeu.getJoueurGagnant().size());
+
         LinkedList<Lettre> lettres = new LinkedList<>();
         lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
         lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
         lettres.add(new Lettre(new Coordonnee(0, 2), "s"));
         lettres.add(new Lettre(new Coordonnee(0, 3), "t"));
-        Mot mot = new Mot(lettres);
 
-        jeu.ajouterMotTrouve(mot, joueur1);
-
-        assertTrue(jeu.getJoueursGagnants().size() == 1);
-        assertTrue(jeu.getJoueursGagnants().get(0).equals(joueur1));
+        jeu.ajouterMotTrouve(lettres, joueur1);
+        assertEquals(joueur1, jeu.getJoueurGagnant().get(0));
     }
 }
