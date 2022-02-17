@@ -51,7 +51,13 @@ public class AffichageConfigurationClient extends JFrame {
                     ((JTextField)((JPanel)config.getComponent(2)).getComponent(1)).getText(),
                     ((JTextField)((JPanel)config.getComponent(3)).getComponent(1)).getText()
                 );
-                new Client(c);
+                setVisible(false);
+                dispose();
+                try {
+                    new Client(c);
+                } catch (Exception exe) {
+                    exe.printStackTrace();
+                }
             } catch (Exception ex) {
                 System.out.println("invalide");
             }

@@ -5,7 +5,7 @@ import java.awt.*;
 
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Langue;
-import com.boggle.serveur.jeu.Serveur;
+import com.boggle.serveur.Serveur;
 /**
  * Affichage d'une fenêtre où se passe la sélection
  * des paramètres et initialisation de la configuration.
@@ -77,7 +77,13 @@ public class AffichageConfigurationServeur extends JFrame{
                     langue,
                     ((JTextField)((JPanel)config.getComponent(6)).getComponent(1)).getText()
                 );
-                new Serveur(c);
+                setVisible(false);
+                dispose();
+                try {
+                    new Serveur(c);
+                } catch (Exception exe) {
+                    exe.printStackTrace();
+                }
             } catch (Exception ex) {
                 System.out.println("invalide");
             }
