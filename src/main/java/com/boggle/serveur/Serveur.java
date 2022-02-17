@@ -12,7 +12,6 @@ import com.google.gson.Gson;
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Jeu;
 import com.boggle.serveur.messages.*;
-import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.util.Logger;
 
@@ -21,14 +20,14 @@ public class Serveur {
     private Logger logger = Logger.getLogger("SERVEUR");
     private ServerSocket serveur;
     private ArrayList<Client> clients = new ArrayList<>();
-    private String password;
+    private String motDePasse;
     private Gson gson = new Gson();
     private Jeu jeu;
 
     public Serveur(ConfigurationServeur c) throws IOException {
-        this.password = c.mdp;
+        this.motDePasse = c.mdp;
         serveur = new ServerSocket(c.port);
-        jeu = new Jeu(c.nbManches, new Grille(c.tailleGrilleV, c.tailleGrilleV, c.langue));
+        jeu = new Jeu(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue);
         demarerServeur();
     }
 
@@ -41,8 +40,9 @@ public class Serveur {
 
                 Client client = poigneeDeMain(s);
                 if(client != null) {
+                    annoncerNouveauClient(client);
                     clients.add(client);
-                    Thread t = new ClientHandler(client);
+                    Thread t = new GestionnaireClient(client);
                     t.start();
                 }
             } catch (IOException e) {
@@ -61,12 +61,12 @@ public class Serveur {
         DataOutputStream dos = new DataOutputStream(s.getOutputStream());
 
         // On demande un nom et un mot de passe au client
-        String name = dis.readUTF();
-        String password = dis.readUTF();
+        String nom = dis.readUTF();
+        String motDePasse = dis.readUTF();
 
-        if(password.equals(this.password)) {
+        if(motDePasse.equals(this.motDePasse)) {
             dos.writeUTF("OK");
-            return new Client(s, dos, dis, name);
+            return new Client(s, dos, dis, nom);
         } else {
             dos.writeUTF("NOPE");
             dos.close();
@@ -76,9 +76,21 @@ public class Serveur {
         }
     }
 
-    private void message(Chat message) {
+    private void annoncerMessage(Chat message) {
+        annoncer("message " + gson.toJson(message));
+    }
+
+    private void annoncerNouveauClient(Client c) {
+        annoncer(String.format("connexion {\"nom\": \"%s\"}", c.nom));
+    }
+
+    private void annoncerDeconnextion(Client c) {
+        annoncer(String.format("deconnexion {\"nom\": \"%s\"}", c.nom));
+    }
+
+    private void annoncer(String message) {
         for (Client c : clients) {
-            c.envoyerMessage("message " + gson.toJson(message));
+            c.envoyerMessage(message);
         }
     }
 
@@ -95,37 +107,40 @@ public class Serveur {
         }
     }
 
-    private class ClientHandler extends Thread {
+    private class GestionnaireClient extends Thread {
         private Client client;
 
-        public ClientHandler(Client c) {
+        public GestionnaireClient(Client c) {
             this.client = c;
         }
 
         public void run() {
-            String line = "";
+            String ligne = "";
             boolean exit = false;
             while(true) {
                 try {
-                    line = client.dis.readUTF();
-                    logger.info("Message reçu : " + line);
-                    String motClef = line.split(" ")[0];
-                    String data = line.substring(motClef.length() + 1);
+                    ligne = client.dis.readUTF();
+                    logger.info("Message reçu : " + ligne);
+                    String motClef = ligne.split(" ")[0];
+                    String donnees = "";
+                    if(!motClef.equals(ligne)) {
+                        donnees = ligne.substring(motClef.length() + 1);
+                    }
                     switch (motClef) {
                         case "message":
-                            Chat chat = gson.fromJson(data, Chat.class);
-                            chat.setAuteur(client.name);
-                            message(chat);
+                            Chat chat = gson.fromJson(donnees, Chat.class);
+                            chat.setAuteur(client.nom);
+                            annoncerMessage(chat);
                             break;
                         case "pret":
                             break;
                         case "pasPret":
                             break;
                         case "mot":
-                            NouveauMot mot = gson.fromJson(data, NouveauMot.class);
+                            NouveauMot mot = gson.fromJson(donnees, NouveauMot.class);
                             ajouterMot(mot);
                             break;
-                        case "exit":
+                        case "stop":
                             exit = true;
                             break;
                         default:
@@ -133,11 +148,16 @@ public class Serveur {
                             break;
                     }
                     if(exit) {
+                        logger.warn("Client \"" + client.nom + "\" s'est déconnecté");
+                        annoncerDeconnextion(client);
                         client.arreter();
+                        clients.remove(client);
                         break;
                     }
                 } catch (IOException e) {
-                    logger.warn("Client déconnecté");
+                    logger.error("Perte de connexion du client \"" + client.nom + "\"");
+                    annoncerDeconnextion(client);
+                    clients.remove(client);
                     break;
                 }
             }
@@ -148,13 +168,13 @@ public class Serveur {
         public final DataOutputStream dos;
         public final DataInputStream dis;
         public final Socket s;
-        public final String name;
+        public final String nom;
 
-        private Client(Socket s, DataOutputStream dos, DataInputStream dis, String name) {
+        private Client(Socket s, DataOutputStream dos, DataInputStream dis, String nom) {
             this.s = s;
             this.dos = dos;
             this.dis = dis;
-            this.name = name;
+            this.nom = nom;
         }
 
         public void envoyerMessage(String s) {

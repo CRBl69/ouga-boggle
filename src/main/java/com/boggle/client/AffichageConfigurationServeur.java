@@ -77,7 +77,13 @@ public class AffichageConfigurationServeur extends JFrame{
                     langue,
                     ((JTextField)((JPanel)config.getComponent(6)).getComponent(1)).getText()
                 );
-                new Serveur(c);
+                setVisible(false);
+                dispose();
+                try {
+                    new Serveur(c);
+                } catch (Exception exe) {
+                    exe.printStackTrace();
+                }
             } catch (Exception ex) {
                 System.out.println("invalide");
             }
