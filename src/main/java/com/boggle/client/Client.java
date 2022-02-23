@@ -15,14 +15,16 @@ public class Client {
     private Socket socket;
     private ConfigurationClient config;
     private Logger logger = Logger.getLogger("CLIENT");
+    private DataInputStream dis;
+    private DataOutputStream dos;
 
     public Client(ConfigurationClient c) throws ConnexionServeurException {
         this.config = c;
         try {
             socket = new Socket(c.ip, c.port);
-            DataInputStream dis = new DataInputStream(socket.getInputStream());
-            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            if (!poigneeDeMain(dos, dis)) {
+            dis = new DataInputStream(socket.getInputStream());
+            dos = new DataOutputStream(socket.getOutputStream());
+            if(!poigneeDeMain(dos, dis)) {
                 throw new ConnexionServeurException("Mauvais mot de passe.");
             } else {
                 GestionnaireServeur gestionnaireServeur = new GestionnaireServeur(dis);
@@ -33,6 +35,8 @@ public class Client {
 
                 gestionnaireServeur.start();
                 clientTerminal.start();
+
+                new AffichageStatus(this).setVisible(true);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -55,11 +59,13 @@ public class Client {
         return reponse.equals("OK");
     }
 
-    /** Permets de dire au serveur que le client est prêt. */
-    public void pret() {}
-
-    /** Permets de dire au serveur que le client n'est pas prêt. */
-    public void pasPret() {}
+    /** Permets de dire au serveur que le client est prêt ou pas. */
+    public void envoyerStatus(boolean status) {
+        try {
+            dos.writeUTF(String.format("status {\"status\": %b}", status));
+        } catch (IOException e) {
+        }
+    }
 
     /**
      * Permets d'envoyer un mot au serveur.

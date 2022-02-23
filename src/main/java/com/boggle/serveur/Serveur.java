@@ -87,6 +87,10 @@ public class Serveur {
         annoncer(String.format("deconnexion {\"nom\": \"%s\"}", c.nom));
     }
 
+    private void annoncerStatus(Pret status) {
+        annoncer("status " + gson.toJson(status));
+    }
+
     private void annoncer(String message) {
         for (Client c : clients) {
             c.envoyerMessage(message);
@@ -131,9 +135,10 @@ public class Serveur {
                             chat.setAuteur(client.nom);
                             annoncerMessage(chat);
                             break;
-                        case "pret":
-                            break;
-                        case "pasPret":
+                        case "status":
+                            Pret status = gson.fromJson(donnees, Pret.class);
+                            status.setAuteur(client.nom);
+                            annoncerStatus(status);
                             break;
                         case "mot":
                             NouveauMot mot = gson.fromJson(donnees, NouveauMot.class);
@@ -168,6 +173,7 @@ public class Serveur {
         public final DataInputStream dis;
         public final Socket s;
         public final String nom;
+        public boolean pret;
 
         private Client(Socket s, DataOutputStream dos, DataInputStream dis, String nom) {
             this.s = s;
