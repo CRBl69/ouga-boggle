@@ -87,7 +87,7 @@ public class Serveur {
         annoncer(String.format("deconnexion {\"nom\": \"%s\"}", c.nom));
     }
 
-    private void annoncerStatus(Pret status) {
+    private void annoncerStatus(Status status) {
         annoncer("status " + gson.toJson(status));
     }
 
@@ -136,7 +136,7 @@ public class Serveur {
                             annoncerMessage(chat);
                             break;
                         case "status":
-                            Pret status = gson.fromJson(donnees, Pret.class);
+                            Status status = gson.fromJson(donnees, Status.class);
                             status.setAuteur(client.nom);
                             annoncerStatus(status);
                             break;
