@@ -5,11 +5,10 @@ import com.boggle.serveur.jeu.Langue;
 import java.util.LinkedList;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
-import com.boggle.serveur.jeu.Langue;
 
 /** Plateau du jeu contenant les lettres. */
 public class Grille {
-    protected Lettre[][] grille;
+    private Lettre[][] grille;
     private final GenerateurLettre langue;
     private final int colonne;
     private final int ligne;
@@ -60,9 +59,14 @@ public class Grille {
         return langueChoisi;
     }
 
+    /**
+     * cherche toutes les occurences de la première lettre du mot dans la grille et teste si elle permet de construire le reste du mot
+     * @param mot mot entré par le joueur
+     * @return le mot sous forme de LInkedList<Lettre> si le mot est valide, null sinon
+     */
     private LinkedList<Lettre> trouverMot(String mot) {
-        for(int i=0; i<this.getLigne(); i++) {
-            for(int j=0; j<this.getColonne(); j++) {
+        for(int i=0; i<this.ligne; i++) {
+            for(int j=0; j<this.colonne; j++) {
                 if(this.grille[i][j].lettre.charAt(0) == mot.charAt(0)) {
                     return checkVoisin(mot.substring(1), j, i, new LinkedList<Lettre>());
                 }
@@ -71,11 +75,19 @@ public class Grille {
         return null;
     }
 
+    /**
+     * regarde chaque lettre autour de la première lettre du mot pour trouver la lettre suivante,
+     * jusqu'à ce qu'on ai trouvé toutes les lettres du mot
+     * @param mot mot recherché dans la grille
+     * @param x coordonnées de la première lettre
+     * @param y coordonnées de la première lettre
+     * @param liste liste du mot a renvoyer à la fin
+     * @return le mot sous forme de LInkedList<Lettre> si on a trouvé un chemin qui le représente, null sinon
+     */
     private LinkedList<Lettre> checkVoisin(String mot, int x, int y, LinkedList<Lettre> liste) {
         if(mot.length()<1 ){
             return liste;
         }
-
         int[][] coords = {
             { x, y-1 },
             { x, y+1 },
@@ -86,7 +98,6 @@ public class Grille {
             { x+1, y },
             { x+1, y+1 },
         };
-
         for(var coord: coords) {
             int a = coord[0];
             int b = coord[1];
@@ -103,7 +114,13 @@ public class Grille {
         return null;
     }
 
+    /**
+     * ajoute un mot entré au clavier
+     * @param lettres le mot entré au clavier
+     * @return le mot sous forme de LInkedList<Lettre> si le mot est valide, null sinon
+     */
     public Mot ajouterMot(String lettres) {
+        if (lettres.equals("")) return null;
         LinkedList<Lettre> liste = trouverMot(lettres);
         if(liste != null) {
             try {
@@ -115,6 +132,11 @@ public class Grille {
         return null;
     }
 
+    /**
+     * ajoute un mot entré à la souris
+     * @param lettres mot entré à la souris
+     * @return le mot sous forme de LInkedList<Lettre> si le mot est valide, null sinon
+     */
     public Mot ajouterMot(LinkedList<Lettre> lettres) {
         for(int i = 0; i < lettres.size() - 1; i++) {
             if(!lettres.get(i).estACoteDe(lettres.get(i+1)) && !lettres.get(i).estSur(lettres.get(i+1))) {
@@ -128,4 +150,7 @@ public class Grille {
         }
     }
 
+    public Lettre[][] getGrille() {
+        return grille;
+    }
 }

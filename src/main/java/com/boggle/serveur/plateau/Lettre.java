@@ -34,4 +34,8 @@ public class Lettre {
     public boolean estSur (Lettre lettre) {
         return this.coord.estSur(lettre.coord);
     }
+
+    public String getString() {
+        return lettre;
+    }
 }
