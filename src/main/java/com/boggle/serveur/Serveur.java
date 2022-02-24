@@ -63,8 +63,10 @@ public class Serveur {
         String nom = dis.readUTF();
         String motDePasse = dis.readUTF();
 
-        if (motDePasse.equals(this.motDePasse)) {
-            dos.writeUTF("OK");
+        if(motDePasse.equals(this.motDePasse)) {
+	    long nPrets = clients.stream().filter((c) -> c.pret).count();
+	    int nClients = clients.size() + 1;
+	    dos.writeUTF(String.format("OK %d %d", nPrets, nClients));
             return new Client(s, dos, dis, nom);
         } else {
             dos.writeUTF("NOPE");
@@ -139,6 +141,11 @@ public class Serveur {
                             Status status = gson.fromJson(donnees, Status.class);
                             status.setAuteur(client.nom);
                             annoncerStatus(status);
+
+			    int nPrets = (int)clients.stream().filter((c) -> c.pret).count();
+			    int nClients = clients.size() + 1;
+			    
+			    if (nPrets == nClient) jeu.commencerPartie();
                             break;
                         case "mot":
                             NouveauMot mot = gson.fromJson(donnees, NouveauMot.class);

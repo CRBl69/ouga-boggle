@@ -4,8 +4,7 @@
 
 | Mot clef  | Description                                                          | Structure                                            |
 |-----------|----------------------------------------------------------------------|------------------------------------------------------|
-| `pret`    | Indique que le joueur est prêt                                       | `{}`                                                 |
-| `pasPret` | Indique que le joueur n'est plus prêt                                | `{}`                                                 |
+| `status`  | Indique que le joueur est pret ou pad                                | `{ status: boolean }`                                |
 | `mot`     | Envoie les informations du mot que l'utilisateur vient d'entrer.[^1] | `{ id: string, lettres: { x: number, y: number}[] }` |
 | `message` | Envoie un message de chat.                                           | `{ message: string }`                                |
 
