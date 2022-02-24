@@ -105,7 +105,7 @@ public class Jeu {
     /**
      * @return la manche courante
      */
-    private Manche getMancheCourante() {
+    public Manche getMancheCourante() {
         return manches.get(manches.size() - 1);
     }
 

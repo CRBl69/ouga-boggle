@@ -31,7 +31,7 @@ public class GrilleTest {
             grille.ajouterMot(mot2);
             assertTrue(true);
         } catch(Exception e) {
-            assertTrue(false);
+            assertTrue(false); 
         }
 
         String vide = "";

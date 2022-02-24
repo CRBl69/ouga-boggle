@@ -62,7 +62,7 @@ public class Grille {
     /**
      * cherche toutes les occurences de la première lettre du mot dans la grille et teste si elle permet de construire le reste du mot
      * @param mot mot entré par le joueur
-     * @return le mot sous forme de LInkedList<Lettre> si le mot est valide, null sinon
+     * @return le mot sous forme de LinkedList<Lettre> si le mot est valide, null sinon
      */
     private LinkedList<Lettre> trouverMot(String mot) {
         for(int i=0; i<this.ligne; i++) {
@@ -82,7 +82,7 @@ public class Grille {
      * @param x coordonnées de la première lettre
      * @param y coordonnées de la première lettre
      * @param liste liste du mot a renvoyer à la fin
-     * @return le mot sous forme de LInkedList<Lettre> si on a trouvé un chemin qui le représente, null sinon
+     * @return le mot sous forme de LinkedList<Lettre> si on a trouvé un chemin qui le représente, null sinon
      */
     private LinkedList<Lettre> checkVoisin(String mot, int x, int y, LinkedList<Lettre> liste) {
         if(mot.length()<1 ){
@@ -117,7 +117,7 @@ public class Grille {
     /**
      * ajoute un mot entré au clavier
      * @param lettres le mot entré au clavier
-     * @return le mot sous forme de LInkedList<Lettre> si le mot est valide, null sinon
+     * @return le mot sous forme de LinkedList<Lettre> si le mot est valide, null sinon
      */
     public Mot ajouterMot(String lettres) {
         if (lettres.equals("")) return null;
@@ -135,11 +135,11 @@ public class Grille {
     /**
      * ajoute un mot entré à la souris
      * @param lettres mot entré à la souris
-     * @return le mot sous forme de LInkedList<Lettre> si le mot est valide, null sinon
+     * @return le mot sous forme de LinkedList<Lettre> si le mot est valide, null sinon
      */
     public Mot ajouterMot(LinkedList<Lettre> lettres) {
         for(int i = 0; i < lettres.size() - 1; i++) {
-            if(!lettres.get(i).estACoteDe(lettres.get(i+1)) && !lettres.get(i).estSur(lettres.get(i+1))) {
+            if(!lettres.get(i).estACoteDe(lettres.get(i+1)) || lettres.get(i).estSur(lettres.get(i+1))) {
                 return null;
             }
         }
