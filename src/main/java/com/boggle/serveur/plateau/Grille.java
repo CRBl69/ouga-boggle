@@ -27,9 +27,9 @@ public class Grille {
         grille = new Lettre[colonne][ligne];
         this.langue = switch(langue) {
             case FR -> new GenerateurLettreFR();
-            case EN -> throw new UnsupportedOperationException("Unimplemented case: " + langue);
-            case ES -> throw new UnsupportedOperationException("Unimplemented case: " + langue);
-            case DE -> throw new UnsupportedOperationException("Unimplemented case: " + langue);
+            case EN -> new GenerateurLettreEN();
+            case ES -> new GenerateurLettreES();
+            case DE -> new GenerateurLettreDE();
         };
         Dictionnaire.genererArbre(langue);
         genGrille();
