@@ -1,15 +1,14 @@
 package com.boggle.client;
 
+import com.boggle.serveur.jeu.ConfigurationClient;
+import com.boggle.serveur.plateau.Mot;
+import com.boggle.util.ConnexionServeurException;
+import com.boggle.util.Logger;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Scanner;
-
-import com.boggle.serveur.jeu.ConfigurationClient;
-import com.boggle.util.ConnexionServeurException;
-import com.boggle.util.Logger;
-import com.boggle.serveur.plateau.Mot;
 
 /** La classe client qui communique avec le serveur */
 public class Client {
@@ -23,7 +22,7 @@ public class Client {
             socket = new Socket(c.ip, c.port);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            if(!poigneeDeMain(dos, dis)) {
+            if (!poigneeDeMain(dos, dis)) {
                 throw new ConnexionServeurException("Mauvais mot de passe.");
             } else {
                 GestionnaireServeur gestionnaireServeur = new GestionnaireServeur(dis);
@@ -39,7 +38,6 @@ public class Client {
             e.printStackTrace();
             throw new ConnexionServeurException("Erreur de connexion au serveur, vérifiez l'IP et le port.");
         }
-
     }
 
     private boolean poigneeDeMain(DataOutputStream dos, DataInputStream dis) throws IOException {
@@ -120,10 +118,10 @@ class ClientTerminal extends Thread {
 
     public void run() {
         try {
-            while(true) {
+            while (true) {
                 String msg = scanner.nextLine();
                 dos.writeUTF(msg);
-                if(msg.equals("stop")) {
+                if (msg.equals("stop")) {
                     break;
                 }
             }

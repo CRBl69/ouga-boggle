@@ -12,7 +12,15 @@ public class ConfigurationServeur {
     public final Langue langue;
     public final String mdp;
 
-    public ConfigurationServeur (int port, int nbJoueurs, int nbManches, int timer, int tailleGrilleH, int tailleGrilleV, Langue langue, String mdp){
+    public ConfigurationServeur(
+            int port,
+            int nbJoueurs,
+            int nbManches,
+            int timer,
+            int tailleGrilleH,
+            int tailleGrilleV,
+            Langue langue,
+            String mdp) {
         this.port = port;
         this.nbJoueurs = nbJoueurs;
         this.nbManches = nbManches;
@@ -22,5 +30,4 @@ public class ConfigurationServeur {
         this.langue = langue;
         this.mdp = mdp;
     }
-
 }

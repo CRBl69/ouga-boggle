@@ -3,11 +3,9 @@ package com.boggle.serveur.jeu;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.LinkedList;
-
 import com.boggle.serveur.plateau.Coordonnee;
 import com.boggle.serveur.plateau.Lettre;
-
+import java.util.LinkedList;
 import org.junit.Test;
 
 public class JeuTest {
@@ -50,7 +48,7 @@ public class JeuTest {
 
         jeu.ajouterMotTrouve(lettres, joueur);
 
-        assertEquals(1, (int)(jeu.getPoints().get(joueur)));
+        assertEquals(1, (int) (jeu.getPoints().get(joueur)));
     }
 
     @Test

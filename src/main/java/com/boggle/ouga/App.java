@@ -7,11 +7,11 @@ import com.boggle.client.AffichageConfigurationServeur;
 public class App {
 
     public static void main(String[] args) {
-        if(args.length != 1) {
+        if (args.length != 1) {
             System.out.println("Vous devez démarer un serveur ou un client");
             System.exit(1);
         }
-        if(args[0].equals("serveur")) {
+        if (args[0].equals("serveur")) {
             var a = new AffichageConfigurationServeur();
             a.setVisible(true);
         } else if (args[0].equals("client")) {

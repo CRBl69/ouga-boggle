@@ -3,9 +3,8 @@ package com.boggle.serveur.dictionnaire;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Test;
-
 import com.boggle.serveur.jeu.Langue;
+import org.junit.Test;
 
 /**
  * Test de la classe Dictionnaire.

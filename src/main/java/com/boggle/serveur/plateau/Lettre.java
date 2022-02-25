@@ -7,22 +7,22 @@ public class Lettre {
 
     /**
      * Constructeur.
-     * 
+     *
      * @param coord coordonnées pour suivre son emplacement.
      * @param lettre caractère pour la lettre.
      */
-    public Lettre (Coordonnee coord, String lettre) {
+    public Lettre(Coordonnee coord, String lettre) {
         this.coord = coord;
         this.lettre = lettre;
     }
 
     /**
      * Verifie si deux lettres sont adjacentes.
-     * 
+     *
      * @param lettre caractère pour la lettre.
      * @return boolean true si les deux lettres sont adjacentes.
      */
-    public boolean estACoteDe (Lettre lettre) {
+    public boolean estACoteDe(Lettre lettre) {
         return this.coord.estACoteDe(lettre.coord);
     }
 }

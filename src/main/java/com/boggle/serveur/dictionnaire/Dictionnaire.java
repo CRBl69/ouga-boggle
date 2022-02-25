@@ -1,18 +1,17 @@
 package com.boggle.serveur.dictionnaire;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.HashMap;
+import com.boggle.serveur.jeu.Langue;
+import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.io.File;
-
-import com.boggle.serveur.jeu.Langue;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /** Classe de vérification des mots. */
 public class Dictionnaire {
@@ -24,7 +23,7 @@ public class Dictionnaire {
      * être appelé avant d'utiliser le dictionnaire.
      */
     public static void genererArbre(Langue langue) {
-        if(arbre == null || Dictionnaire.langue != langue) {
+        if (arbre == null || Dictionnaire.langue != langue) {
             Dictionnaire.langue = langue;
             var mots = listeDesMots(langue);
             Dictionnaire.arbre = new Arbre(mots);
@@ -38,10 +37,10 @@ public class Dictionnaire {
      * @return vrai si le mot est dans le dictionnaire, faux sinon
      */
     public static boolean estUnMot(String mot) {
-        if(Dictionnaire.arbre == null) {
+        if (Dictionnaire.arbre == null) {
             throw new IllegalStateException("Arbre non initialisé");
         }
-        if(mot == "") return false;
+        if (mot == "") return false;
         return Dictionnaire.arbre.estUnMot(mot);
     }
 
@@ -53,12 +52,13 @@ public class Dictionnaire {
     private static List<String> listeDesMots(Langue langue) {
         ArrayList<String> mots = new ArrayList<>();
         try {
-            String nomFichier = "/langues/" + switch(langue) {
-                case FR -> "fr_sans_accents.txt";
-                case DE -> "de_sans_accents.txt";
-                case ES -> "es_sans_accents.txt";
-                case EN -> "en.txt";
-            };
+            String nomFichier = "/langues/"
+                    + switch (langue) {
+                        case FR -> "fr_sans_accents.txt";
+                        case DE -> "de_sans_accents.txt";
+                        case ES -> "es_sans_accents.txt";
+                        case EN -> "en.txt";
+                    };
             FileInputStream flux = lireFichier(nomFichier);
             BufferedReader lecteur = new BufferedReader(new InputStreamReader(flux));
             String ligne;
@@ -83,7 +83,8 @@ public class Dictionnaire {
      */
     private static FileInputStream lireFichier(String fichier) throws FileNotFoundException {
         try {
-            return new FileInputStream(new File(Dictionnaire.class.getResource(fichier).toURI()));
+            return new FileInputStream(
+                    new File(Dictionnaire.class.getResource(fichier).toURI()));
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -108,9 +109,7 @@ class Noeud {
 
     public Noeud(List<String> mots) {
         this.fils = new HashMap<>();
-        var premieresLettres = mots.stream()
-                .map(mot -> mot.charAt(0))
-                .collect(Collectors.toSet());
+        var premieresLettres = mots.stream().map(mot -> mot.charAt(0)).collect(Collectors.toSet());
         for (var premiereLettre : premieresLettres) {
             var fils = new Noeud(mots.stream()
                     .filter(mot -> mot.charAt(0) == premiereLettre)
@@ -122,9 +121,9 @@ class Noeud {
     }
 
     public boolean estUnSousMot(String mot) {
-        if(mot.length() == 0) return true;
+        if (mot.length() == 0) return true;
         var fils = this.fils.get(mot.charAt(0) + "");
-        if(fils == null) return false;
+        if (fils == null) return false;
         return fils.estUnSousMot(mot.substring(1));
     }
 }

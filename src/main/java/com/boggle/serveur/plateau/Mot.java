@@ -1,28 +1,26 @@
 package com.boggle.serveur.plateau;
 
+import com.boggle.serveur.dictionnaire.Dictionnaire;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import com.boggle.serveur.dictionnaire.Dictionnaire;
 
 public class Mot {
     private LinkedList<Lettre> lettres;
     private final long dateCreation;
     private static AtomicInteger cpt = new AtomicInteger(0);
     private final int id;
-  
+
     /**
      * Constructeur.
      *
      * @param lettres liste de lettres qui composent un mot.
      */
-    public Mot (LinkedList<Lettre> lettres) {
+    public Mot(LinkedList<Lettre> lettres) {
         this.lettres = lettres;
         this.dateCreation = Calendar.getInstance().getTimeInMillis();
         id = cpt.getAndIncrement();
-        if(!estMotValide())
-            throw new IllegalArgumentException("le mot n'est pas valide");
+        if (!estMotValide()) throw new IllegalArgumentException("le mot n'est pas valide");
     }
 
     // TODO: à finir quand le dictionnaire sera disponible
@@ -38,14 +36,14 @@ public class Mot {
 
     public String toString() {
         String res = "";
-        for(int i = 0 ; i < lettres.size(); i++) {
+        for (int i = 0; i < lettres.size(); i++) {
             res += lettres.get(i).lettre;
         }
         return res;
     }
 
     public LinkedList<Lettre> getLettres() {
-      return lettres;
+        return lettres;
     }
 
     public long getTemps() {

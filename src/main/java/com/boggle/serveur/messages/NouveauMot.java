@@ -6,9 +6,7 @@ public class NouveauMot {
     private String id;
     private Lettre[] lettres;
 
-    public NouveauMot() {
-
-    }
+    public NouveauMot() {}
 
     public String getId() {
         return id;
