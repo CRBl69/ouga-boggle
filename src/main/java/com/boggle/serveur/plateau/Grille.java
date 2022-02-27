@@ -28,8 +28,7 @@ public class Grille {
             case FR -> new GenerateurLettreFR();
             case EN -> new GenerateurLettreEN();
             case ES -> new GenerateurLettreES();
-            case DE -> new GenerateurLettreDE();
-        };
+            case DE -> new GenerateurLettreDE();};
         Dictionnaire.genererArbre(langue);
         genGrille();
     }
