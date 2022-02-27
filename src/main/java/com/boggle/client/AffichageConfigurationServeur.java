@@ -1,18 +1,18 @@
 package com.boggle.client;
 
-import javax.swing.*;
-import java.awt.*;
-
+import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Langue;
-import com.boggle.serveur.Serveur;
+import java.awt.*;
+import javax.swing.*;
+
 /**
  * Affichage d'une fenêtre où se passe la sélection
  * des paramètres et initialisation de la configuration.
  */
-public class AffichageConfigurationServeur extends JFrame{
+public class AffichageConfigurationServeur extends JFrame {
 
-    public AffichageConfigurationServeur(){
+    public AffichageConfigurationServeur() {
 
         setTitle("OuGa-BoGgLe - Configuration de la partie");
         setLayout(new BorderLayout());
@@ -20,17 +20,17 @@ public class AffichageConfigurationServeur extends JFrame{
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         String[][] labels = {
-            { "Port: ", "8080" },
-            { "Nombre de joueurs: ", "10" },
-            { "Nombre de manches: ", "3" },
-            { "Durée du timer en secondes: ", "60" },
-            { "Largeur de la grille: ", "4" },
-            { "Hauteur de la grille: ", "4" },
-            { "Mot de passe: ", "" },
+            {"Port: ", "8080"},
+            {"Nombre de joueurs: ", "10"},
+            {"Nombre de manches: ", "3"},
+            {"Durée du timer en secondes: ", "60"},
+            {"Largeur de la grille: ", "4"},
+            {"Hauteur de la grille: ", "4"},
+            {"Mot de passe: ", ""},
         };
         int paires = labels.length;
 
-        JPanel config = new JPanel(new GridLayout(8,1));
+        JPanel config = new JPanel(new GridLayout(8, 1));
         for (int i = 0; i < paires; i++) {
             JPanel groupe = new JPanel();
             JLabel label = new JLabel(labels[i][0], JLabel.TRAILING);
@@ -59,24 +59,24 @@ public class AffichageConfigurationServeur extends JFrame{
         add(go, BorderLayout.SOUTH);
 
         go.addActionListener(e -> {
-            var langue = switch (langueComboBox.getSelectedItem().toString()){
-                case "français" -> Langue.FR;
-                case "anglais" -> Langue.EN;
-                case "allemand" -> Langue.DE;
-                default -> Langue.ES;
-            };
+            var langue =
+                    switch (langueComboBox.getSelectedItem().toString()) {
+                        case "français" -> Langue.FR;
+                        case "anglais" -> Langue.EN;
+                        case "allemand" -> Langue.DE;
+                        default -> Langue.ES;
+                    };
 
             try {
                 ConfigurationServeur c = new ConfigurationServeur(
-                    Integer.parseInt(((JTextField)((JPanel)config.getComponent(0)).getComponent(1)).getText()),
-                    Integer.parseInt(((JTextField)((JPanel)config.getComponent(1)).getComponent(1)).getText()),
-                    Integer.parseInt(((JTextField)((JPanel)config.getComponent(2)).getComponent(1)).getText()),
-                    Integer.parseInt(((JTextField)((JPanel)config.getComponent(3)).getComponent(1)).getText()),
-                    Integer.parseInt(((JTextField)((JPanel)config.getComponent(4)).getComponent(1)).getText()),
-                    Integer.parseInt(((JTextField)((JPanel)config.getComponent(5)).getComponent(1)).getText()),
-                    langue,
-                    ((JTextField)((JPanel)config.getComponent(6)).getComponent(1)).getText()
-                );
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(0)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(1)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(2)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(3)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(4)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(5)).getComponent(1)).getText()),
+                        langue,
+                        ((JTextField) ((JPanel) config.getComponent(6)).getComponent(1)).getText());
                 setVisible(false);
                 dispose();
                 try {
@@ -90,7 +90,7 @@ public class AffichageConfigurationServeur extends JFrame{
         });
     }
 
-    public static void main(String args[]){
+    public static void main(String args[]) {
         AffichageConfigurationServeur acs = new AffichageConfigurationServeur();
         acs.setVisible(true);
     }

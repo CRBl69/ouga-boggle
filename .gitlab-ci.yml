@@ -46,6 +46,11 @@ cache:
   except:
     - master
 
+.format: &format
+  stage: test
+  script:
+    - 'mvn $MAVEN_CLI_OPTS spotless:check'
+
 # Validate merge requests using JDK17
 validate:jdk17:
   <<: *validate
@@ -54,5 +59,10 @@ validate:jdk17:
 # Verify merge requests using JDK17
 verify:jdk17:
   <<: *verify
+  image: maven:3.8.4-openjdk-17
+
+# Verify merge requests using JDK17
+format:jdk17:
+  <<: *format
   image: maven:3.8.4-openjdk-17
 

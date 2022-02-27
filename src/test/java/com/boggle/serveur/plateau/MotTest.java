@@ -2,11 +2,9 @@ package com.boggle.serveur.plateau;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.LinkedList;
-
 import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.jeu.Langue;
-
+import java.util.LinkedList;
 import org.junit.Test;
 
 public class MotTest {

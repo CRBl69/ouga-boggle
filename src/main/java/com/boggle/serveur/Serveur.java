@@ -1,5 +1,11 @@
 package com.boggle.serveur;
 
+import com.boggle.serveur.jeu.ConfigurationServeur;
+import com.boggle.serveur.jeu.Jeu;
+import com.boggle.serveur.messages.*;
+import com.boggle.serveur.plateau.Lettre;
+import com.boggle.util.Logger;
+import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -7,13 +13,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.LinkedList;
-
-import com.google.gson.Gson;
-import com.boggle.serveur.jeu.ConfigurationServeur;
-import com.boggle.serveur.jeu.Jeu;
-import com.boggle.serveur.messages.*;
-import com.boggle.serveur.plateau.Lettre;
-import com.boggle.util.Logger;
 
 /** Gère la communication avec tous les clients. */
 public class Serveur {
@@ -39,7 +38,7 @@ public class Serveur {
                 logger.info("Nouveau client connecté");
 
                 Client client = poigneeDeMain(s);
-                if(client != null) {
+                if (client != null) {
                     annoncerNouveauClient(client);
                     clients.add(client);
                     Thread t = new GestionnaireClient(client);
@@ -64,7 +63,7 @@ public class Serveur {
         String nom = dis.readUTF();
         String motDePasse = dis.readUTF();
 
-        if(motDePasse.equals(this.motDePasse)) {
+        if (motDePasse.equals(this.motDePasse)) {
             dos.writeUTF("OK");
             return new Client(s, dos, dis, nom);
         } else {
@@ -101,8 +100,8 @@ public class Serveur {
                 liste.add(l);
             }
             logger.info("Mot valide");
-            //jeu.ajouterMotTrouve(m);
-        } catch(IllegalArgumentException e) {
+            // jeu.ajouterMotTrouve(m);
+        } catch (IllegalArgumentException e) {
             logger.error("Mot invalide");
         }
     }
@@ -117,13 +116,13 @@ public class Serveur {
         public void run() {
             String ligne = "";
             boolean exit = false;
-            while(true) {
+            while (true) {
                 try {
                     ligne = client.dis.readUTF();
                     logger.info("Message reçu : " + ligne);
                     String motClef = ligne.split(" ")[0];
                     String donnees = "";
-                    if(!motClef.equals(ligne)) {
+                    if (!motClef.equals(ligne)) {
                         donnees = ligne.substring(motClef.length() + 1);
                     }
                     switch (motClef) {
@@ -147,7 +146,7 @@ public class Serveur {
                             logger.warn(motClef + " n'est pas reconnu");
                             break;
                     }
-                    if(exit) {
+                    if (exit) {
                         logger.warn("Client \"" + client.nom + "\" s'est déconnecté");
                         annoncerDeconnextion(client);
                         client.arreter();
