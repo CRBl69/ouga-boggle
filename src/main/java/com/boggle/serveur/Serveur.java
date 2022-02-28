@@ -145,7 +145,7 @@ public class Serveur {
 			    int nPrets = (int)clients.stream().filter((c) -> c.pret).count();
 			    int nClients = clients.size() + 1;
 			    
-			    if (nPrets == nClient) jeu.commencerPartie();
+			    if (nPrets == nClients) jeu.commencerPartie();
                             break;
                         case "mot":
                             NouveauMot mot = gson.fromJson(donnees, NouveauMot.class);
