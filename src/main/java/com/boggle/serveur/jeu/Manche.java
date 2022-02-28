@@ -94,7 +94,7 @@ public class Manche {
      */
     public void ajouterMotTrouve(String lettre, Joueur joueur) {
         Mot mot = grille.ajouterMot(lettre);
-        if(!listeMots.containsKey(joueur)) {
+        if (!listeMots.containsKey(joueur)) {
             listeMots.put(joueur, new HashSet<>());
         }
         listeMots.get(joueur).add(mot);

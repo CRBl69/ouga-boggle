@@ -16,7 +16,7 @@ public class Lettre {
         this.lettre = lettre;
     }
 
-    public Lettre (String lettre) {
+    public Lettre(String lettre) {
         this.coord = null;
         this.lettre = lettre;
     }
@@ -31,7 +31,7 @@ public class Lettre {
         return this.coord.estACoteDe(lettre.coord);
     }
 
-    public boolean estSur (Lettre lettre) {
+    public boolean estSur(Lettre lettre) {
         return this.coord.estSur(lettre.coord);
     }
 
