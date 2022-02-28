@@ -31,7 +31,7 @@ public class Mot {
      * @return boolean true si le mot est valide
      */
     private boolean estMotValide() {
-        return Dictionnaire.estUnMot(toString());
+        return Dictionnaire.estUnMot(toString()) && lettres.size() > 3;
     }
 
     public String toString() {

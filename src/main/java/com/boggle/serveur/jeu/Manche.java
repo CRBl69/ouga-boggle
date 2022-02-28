@@ -75,11 +75,25 @@ public class Manche {
     /**
      * Ajoute un mot valide dans la liste de mots trouvés par
      * le joueur.
-     * @param mot mot qui a été trouvé
+     * @param lettre mot qui a été trouvé
      * @param joueur joueur qui a trouvé le mot
      */
     public void ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
-        Mot mot = new Mot(lettre);
+        Mot mot = grille.ajouterMot(lettre);
+        if (!listeMots.containsKey(joueur)) {
+            listeMots.put(joueur, new HashSet<>());
+        }
+        listeMots.get(joueur).add(mot);
+    }
+
+    /**
+     * Ajoute un mot valide dans la liste de mots trouvés par
+     * le joueur.
+     * @param lettre mot qui a été trouvé
+     * @param joueur joueur qui a trouvé le mot
+     */
+    public void ajouterMotTrouve(String lettre, Joueur joueur) {
+        Mot mot = grille.ajouterMot(lettre);
         if (!listeMots.containsKey(joueur)) {
             listeMots.put(joueur, new HashSet<>());
         }
