@@ -1,6 +1,7 @@
 package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
+import com.boggle.util.Logger;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,6 +11,7 @@ public class Mot {
     private final long dateCreation;
     private static AtomicInteger cpt = new AtomicInteger(0);
     private final int id;
+    private Logger logger = Logger.getLogger("MOT");
 
     /**
      * Constructeur.
@@ -20,10 +22,12 @@ public class Mot {
         this.lettres = lettres;
         this.dateCreation = Calendar.getInstance().getTimeInMillis();
         id = cpt.getAndIncrement();
-        if (!estMotValide()) throw new IllegalArgumentException("le mot n'est pas valide");
+        if (!estMotValide()) {
+            logger.info("Le mot n'est pas dans le dictionnaire");
+            throw new IllegalArgumentException("Le mot n'est pas valide");
+        }
     }
 
-    // TODO: à finir quand le dictionnaire sera disponible
     /**
      * Vérifie si la liste de lettres est considéré comme un mot valide selon les règles de Boogle et le dictionnaire de la langue choisie
      *
@@ -31,7 +35,7 @@ public class Mot {
      * @return boolean true si le mot est valide
      */
     private boolean estMotValide() {
-        return Dictionnaire.estUnMot(toString()) && lettres.size() > 3;
+        return Dictionnaire.estUnMot(toString()) && lettres.size() >= 3;
     }
 
     public String toString() {
@@ -52,5 +56,20 @@ public class Mot {
 
     public int getId() {
         return id;
+    }
+
+    public int getPoints() {
+        return Mot.getPoints(this.toString());
+    }
+
+    public static int getPoints(String mot) {
+        return switch (mot.length()) {
+            case 3 -> 1;
+            case 4 -> 1;
+            case 5 -> 2;
+            case 6 -> 3;
+            case 7 -> 5;
+            default -> 11;
+        };
     }
 }

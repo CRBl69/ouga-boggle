@@ -106,6 +106,7 @@ class Arbre {
 
 class Noeud {
     private HashMap<String, Noeud> fils;
+    private boolean estUnMot = false;
 
     public Noeud(List<String> mots) {
         this.fils = new HashMap<>();
@@ -114,14 +115,19 @@ class Noeud {
             var fils = new Noeud(mots.stream()
                     .filter(mot -> mot.charAt(0) == premiereLettre)
                     .map(mot -> mot.substring(1))
-                    .filter(mot -> mot.length() > 0)
+                    .filter(mot -> {
+                        if (mot.length() == 0) {
+                            estUnMot = true;
+                        }
+                        return mot.length() > 0;
+                    })
                     .collect(Collectors.toList()));
             this.fils.put(premiereLettre + "", fils);
         }
     }
 
     public boolean estUnSousMot(String mot) {
-        if (mot.length() == 0) return true;
+        if (mot.length() == 0) return estUnMot;
         var fils = this.fils.get(mot.charAt(0) + "");
         if (fils == null) return false;
         return fils.estUnSousMot(mot.substring(1));

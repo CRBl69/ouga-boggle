@@ -4,6 +4,7 @@ import com.boggle.serveur.plateau.Lettre;
 
 public class NouveauMot {
     private String id;
+    private String auteur;
     private Lettre[] lettres;
 
     public NouveauMot() {}
@@ -14,5 +15,13 @@ public class NouveauMot {
 
     public Lettre[] getLettres() {
         return lettres;
+    }
+
+    public void setAuteur(String auteur) {
+        this.auteur = auteur;
+    }
+
+    public String getAuteur() {
+        return auteur;
     }
 }

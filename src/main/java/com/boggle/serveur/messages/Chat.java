@@ -13,8 +13,12 @@ public class Chat {
     public String getAuteur() {
         return auteur;
     }
-    
+
     public void setAuteur(String auteur) {
         this.auteur = auteur;
+    }
+
+    public String toString() {
+        return String.format("%s : %s", auteur, message);
     }
 }

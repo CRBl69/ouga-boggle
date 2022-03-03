@@ -41,24 +41,7 @@ public class Manche {
         for (Joueur joueur : listeMots.keySet()) {
             int acc = 0;
             for (Mot mot : listeMots.get(joueur)) {
-                switch (mot.getLettres().size()) {
-                    case 3:
-                    case 4:
-                        acc += 1;
-                        break;
-                    case 5:
-                        acc += 2;
-                        break;
-                    case 6:
-                        acc += 3;
-                        break;
-                    case 7:
-                        acc += 5;
-                        break;
-                    default:
-                        acc += 11;
-                        break;
-                }
+                acc += mot.getPoints();
             }
             points.put(joueur, acc);
         }
@@ -78,12 +61,15 @@ public class Manche {
      * @param lettre mot qui a été trouvé
      * @param joueur joueur qui a trouvé le mot
      */
-    public void ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
+    public int ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
         Mot mot = grille.ajouterMot(lettre);
-        if (!listeMots.containsKey(joueur)) {
-            listeMots.put(joueur, new HashSet<>());
+        if (mot != null) {
+            if (!listeMots.containsKey(joueur)) {
+                listeMots.put(joueur, new HashSet<>());
+            }
+            listeMots.get(joueur).add(mot);
         }
-        listeMots.get(joueur).add(mot);
+        return mot != null ? mot.getPoints() : 0;
     }
 
     /**
@@ -92,11 +78,14 @@ public class Manche {
      * @param lettre mot qui a été trouvé
      * @param joueur joueur qui a trouvé le mot
      */
-    public void ajouterMotTrouve(String lettre, Joueur joueur) {
+    public int ajouterMotTrouve(String lettre, Joueur joueur) {
         Mot mot = grille.ajouterMot(lettre);
-        if (!listeMots.containsKey(joueur)) {
-            listeMots.put(joueur, new HashSet<>());
+        if (mot != null) {
+            if (!listeMots.containsKey(joueur)) {
+                listeMots.put(joueur, new HashSet<>());
+            }
+            listeMots.get(joueur).add(mot);
         }
-        listeMots.get(joueur).add(mot);
+        return mot != null ? mot.getPoints() : 0;
     }
 }

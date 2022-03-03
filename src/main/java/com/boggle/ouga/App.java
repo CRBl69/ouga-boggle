@@ -7,6 +7,7 @@ import com.boggle.client.AffichageConfigurationServeur;
 public class App {
 
     public static void main(String[] args) {
+        System.setProperty("awt.useSystemAAFontSettings", "on");
         if (args.length != 1) {
             System.out.println("Vous devez démarer un serveur ou un client");
             System.exit(1);

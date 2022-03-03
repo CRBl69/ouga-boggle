@@ -2,29 +2,31 @@ package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.jeu.Langue;
+import com.boggle.util.Logger;
 import java.util.LinkedList;
 
 /** Plateau du jeu contenant les lettres. */
 public class Grille {
     private Lettre[][] grille;
     private final GenerateurLettre langue;
-    private final int colonne;
-    private final int ligne;
+    private final int colonnes;
+    private final int lignes;
     private final Langue langueChoisi;
+    private final Logger logger = Logger.getLogger("GRILLE");
 
     /**
      * Constructeur.
      *
-     * @param colonne nombre de colonnes de la grille
-     * @param ligne nombre de lignes de la grille
+     * @param colonnes nombre de colonnes de la grille
+     * @param lignes nombre de lignes de la grille
      * @param langue la langue choisie
      */
-    public Grille(int colonne, int ligne, Langue langue) {
-        if (colonne < 1 || ligne < 1) throw new IllegalArgumentException();
-        this.colonne = colonne;
-        this.ligne = ligne;
+    public Grille(int colonnes, int lignes, Langue langue) {
+        if (colonnes < 1 || lignes < 1) throw new IllegalArgumentException();
+        this.colonnes = colonnes;
+        this.lignes = lignes;
         this.langueChoisi = langue;
-        grille = new Lettre[colonne][ligne];
+        grille = new Lettre[colonnes][lignes];
         this.langue = switch (langue) {
             case FR -> new GenerateurLettreFR();
             case EN -> new GenerateurLettreEN();
@@ -45,12 +47,12 @@ public class Grille {
         }
     }
 
-    public int getColonne() {
-        return colonne;
+    public int getColonnes() {
+        return colonnes;
     }
 
-    public int getLigne() {
-        return ligne;
+    public int getLignes() {
+        return lignes;
     }
 
     public Langue getLangueChoisi() {
@@ -63,10 +65,14 @@ public class Grille {
      * @return le mot sous forme de LinkedList<Lettre> si le mot est valide, null sinon
      */
     private LinkedList<Lettre> trouverMot(String mot) {
-        for (int i = 0; i < this.ligne; i++) {
-            for (int j = 0; j < this.colonne; j++) {
+        logger.info(String.format("Recherche du mot %s dans la grille", mot));
+        for (int i = 0; i < this.lignes; i++) {
+            for (int j = 0; j < this.colonnes; j++) {
                 if (this.grille[i][j].lettre.charAt(0) == mot.charAt(0)) {
-                    return checkVoisin(mot.substring(1), j, i, new LinkedList<Lettre>());
+                    var liste = new LinkedList<Lettre>();
+                    liste.add(this.grille[i][j]);
+                    var trouve = checkVoisin(mot.substring(1), i, j, liste);
+                    if (trouve != null) return trouve;
                 }
             }
         }

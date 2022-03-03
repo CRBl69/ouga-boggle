@@ -2,6 +2,7 @@ package com.boggle.serveur;
 
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Jeu;
+import com.boggle.serveur.jeu.Joueur;
 import com.boggle.serveur.messages.*;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.util.Logger;
@@ -22,11 +23,13 @@ public class Serveur {
     private String motDePasse;
     private Gson gson = new Gson();
     private Jeu jeu;
+    private ConfigurationServeur configuration;
 
     public Serveur(ConfigurationServeur c) throws IOException {
+        this.configuration = c;
         this.motDePasse = c.mdp;
         serveur = new ServerSocket(c.port);
-        jeu = new Jeu(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue);
+        jeu = new Jeu(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
         demarerServeur();
     }
 
@@ -63,10 +66,10 @@ public class Serveur {
         String nom = dis.readUTF();
         String motDePasse = dis.readUTF();
 
-        if(motDePasse.equals(this.motDePasse)) {
-	    long nPrets = clients.stream().filter((c) -> c.pret).count();
-	    int nClients = clients.size() + 1;
-	    dos.writeUTF(String.format("OK %d %d", nPrets, nClients));
+        if (motDePasse.equals(this.motDePasse)) {
+            long nPrets = clients.stream().filter((c) -> c.pret).count();
+            int nClients = clients.size() + 1;
+            dos.writeUTF(String.format("OK %d %d", nPrets, nClients));
             return new Client(s, dos, dis, nom);
         } else {
             dos.writeUTF("NOPE");
@@ -93,23 +96,66 @@ public class Serveur {
         annoncer("status " + gson.toJson(status));
     }
 
+    public void annoncerDebutPartie() {
+        annoncer("debutJeu " + gson.toJson(new ConfigDebut(configuration.nbManches, configuration.timer)));
+    }
+
+    public void annoncerFinPartie() {
+        annoncer("finJeu");
+    }
+
+    public void annoncerDebutManche() {
+        annoncer("debutManche " + gson.toJson(new DebutManche(jeu.getGrille())));
+    }
+
+    public void annoncerFinManche() {
+        annoncer("finManche " + gson.toJson(new FinManche(jeu)));
+    }
+
+    public void annoncerMotTrouve(String nom) {
+        annoncer("motTrouve " + gson.toJson(new MotTrouve(nom)));
+    }
+
     private void annoncer(String message) {
         for (Client c : clients) {
             c.envoyerMessage(message);
         }
     }
 
-    private void ajouterMot(NouveauMot nouveauMot) {
-        try {
-            LinkedList<Lettre> liste = new LinkedList<>();
-            for (Lettre l : nouveauMot.getLettres()) {
-                liste.add(l);
-            }
-            logger.info("Mot valide");
-            // jeu.ajouterMotTrouve(m);
-        } catch (IllegalArgumentException e) {
-            logger.error("Mot invalide");
+    private void ajouterMot(NouveauMot nouveauMot, Client client) {
+        LinkedList<Lettre> liste = new LinkedList<>();
+        for (Lettre l : nouveauMot.getLettres()) {
+            liste.add(l);
         }
+        int valide = jeu.ajouterMotTrouve(
+                liste,
+                jeu.getJoueurs().stream()
+                        .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
+                        .findFirst()
+                        .get());
+        if (valide > 0) {
+            logger.info("Mot valide");
+            annoncerMotTrouve(nouveauMot.getAuteur());
+        } else {
+            logger.info("Mot invalide");
+        }
+        client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
+    }
+
+    private void ajouterMot(NouveauMotClavier nouveauMot, Client client) {
+        int valide = jeu.ajouterMotTrouve(
+                nouveauMot.getMot(),
+                jeu.getJoueurs().stream()
+                        .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
+                        .findFirst()
+                        .get());
+        if (valide > 0) {
+            logger.info("Mot valide");
+            annoncerMotTrouve(nouveauMot.getAuteur());
+        } else {
+            logger.info("Mot invalide");
+        }
+        client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
     }
 
     private class GestionnaireClient extends Thread {
@@ -138,18 +184,29 @@ public class Serveur {
                             annoncerMessage(chat);
                             break;
                         case "status":
+                            if (jeu.partieEstCommencee()) break;
                             Status status = gson.fromJson(donnees, Status.class);
                             status.setAuteur(client.nom);
                             annoncerStatus(status);
 
-			    int nPrets = (int)clients.stream().filter((c) -> c.pret).count();
-			    int nClients = clients.size() + 1;
-			    
-			    if (nPrets == nClients) jeu.commencerPartie();
+                            client.pret = true;
+                            if (tousLesClientsSontPrets()) {
+                                jeu.commencerPartie();
+                                clients.forEach(c -> {
+                                    Joueur j = new Joueur(c.nom);
+                                    jeu.ajouterJoueur(j);
+                                });
+                            }
                             break;
-                        case "mot":
+                        case "motSouris":
                             NouveauMot mot = gson.fromJson(donnees, NouveauMot.class);
-                            ajouterMot(mot);
+                            mot.setAuteur(client.nom);
+                            ajouterMot(mot, client);
+                            break;
+                        case "motClavier":
+                            NouveauMotClavier motClavier = gson.fromJson(donnees, NouveauMotClavier.class);
+                            motClavier.setAuteur(client.nom);
+                            ajouterMot(motClavier, client);
                             break;
                         case "stop":
                             exit = true;
@@ -206,5 +263,9 @@ public class Serveur {
                 e.printStackTrace();
             }
         }
+    }
+
+    private boolean tousLesClientsSontPrets() {
+        return clients.stream().allMatch(c -> c.pret);
     }
 }

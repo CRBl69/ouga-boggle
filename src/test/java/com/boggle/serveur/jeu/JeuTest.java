@@ -11,10 +11,10 @@ import org.junit.Test;
 public class JeuTest {
     @Test
     public void creationDeJeu() {
-        new Jeu(3, 60, 4, 4, Langue.FR);
+        new Jeu(3, 60, 4, 4, Langue.FR, null);
 
         try {
-            new Jeu(-1, -1, -1, -1, Langue.FR);
+            new Jeu(-1, -1, -1, -1, Langue.FR, null);
             assertTrue(false);
         } catch (IllegalArgumentException e) {
             assertTrue(true);
@@ -23,7 +23,7 @@ public class JeuTest {
 
     @Test
     public void ajouterJoueur() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR);
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, null);
 
         jeu.ajouterJoueur(new Joueur("Bogdan"));
         assertTrue(jeu.getJoueurs().size() == 1);
@@ -34,7 +34,7 @@ public class JeuTest {
 
     @Test
     public void ajouterMotTrouve() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR);
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, null);
         Joueur joueur = new Joueur("Bogdan");
         jeu.ajouterJoueur(joueur);
 
@@ -60,7 +60,7 @@ public class JeuTest {
 
     @Test
     public void joueurGagnants() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR);
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, null);
         Joueur joueur1 = new Joueur("Bogdan");
         Joueur joueur2 = new Joueur("Claire");
         jeu.ajouterJoueur(joueur1);
