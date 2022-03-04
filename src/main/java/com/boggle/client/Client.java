@@ -11,7 +11,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Scanner;
 import java.util.UUID;
 
 /** La classe client qui communique avec le serveur */
@@ -38,13 +37,8 @@ public class Client {
                 throw new ConnexionServeurException("Mauvais mot de passe.");
             } else {
                 GestionnaireServeur gestionnaireServeur = new GestionnaireServeur(dis);
-                ClientTerminal clientTerminal = new ClientTerminal(dos);
-
-                gestionnaireServeur.setClientTerminal(clientTerminal);
-                clientTerminal.setGestionnaireServeur(gestionnaireServeur);
 
                 gestionnaireServeur.start();
-                clientTerminal.start();
 
                 affichageStatus = new AffichageStatus(this);
                 affichageStatus.setVisible(true);
@@ -55,6 +49,16 @@ public class Client {
         }
     }
 
+    /**
+     * Effectue la poignée de main avec le serveur.
+     *
+     * Elle envoie d'abord le pseudo, puis le mot de passe. Si le mot de passe
+     * est correct, la fonction extrait le nombre de clients déjà connectés et le
+     * nombre de clients prêts de la réponse serveur.
+     *
+     * @param message le message à envoyer
+     * @throws IOException
+     */
     private boolean poigneeDeMain(DataOutputStream dos, DataInputStream dis) throws IOException {
         logger.info("Envoi du pseudo");
         dos.writeUTF(config.pseudo);
@@ -104,17 +108,13 @@ public class Client {
         return nPrets;
     }
 
+    /** Classe interne qui gère les messages envoyés par le serveur. */
     class GestionnaireServeur extends Thread {
         private DataInputStream dis;
         private Logger logger = Logger.getLogger("CLIENT");
-        private ClientTerminal clientTerminal;
 
         public GestionnaireServeur(DataInputStream dis) {
             this.dis = dis;
-        }
-
-        public void setClientTerminal(ClientTerminal clientTerminal) {
-            this.clientTerminal = clientTerminal;
         }
 
         public void run() {
@@ -126,7 +126,6 @@ public class Client {
                     String donnees = "";
                     if (!motClef.equals(message)) donnees = message.substring(motClef.length() + 1);
 
-                    // TODO finir
                     switch (motClef) {
                         case "message":
                             Chat chat = gson.fromJson(donnees, Chat.class);
@@ -141,9 +140,7 @@ public class Client {
                         case "motVerifie":
                             MotVerifie mot = gson.fromJson(donnees, MotVerifie.class);
                             mot.setMot(motsEnVerification.get(mot.getId()));
-                            if (mot.isAccepte()) {
-                                affichageJeu.ajouterMotVerifie(mot);
-                            }
+                            affichageJeu.ajouterMotVerifie(mot);
                             break;
                         case "stop":
                             break;
@@ -157,22 +154,22 @@ public class Client {
                             break;
                         case "motTrouve":
                             MotTrouve motTrouve = gson.fromJson(donnees, MotTrouve.class);
-                            if(!motTrouve.getNom().equals(config.pseudo)) {
+                            if (!motTrouve.getNom().equals(config.pseudo)) {
                                 affichageJeu.ajouterMotTrouve(motTrouve);
                             }
                             break;
                         case "debutJeu":
                             affichageStatus.setVisible(false);
-                            affichageJeu = new AffichageJeu(new ClientGraphique(dos));
+                            affichageJeu = new AffichageJeu(new Serveur(dos));
                             break;
                         case "debutManche":
                             DebutManche debutManche = gson.fromJson(donnees, DebutManche.class);
+                            affichageJeu.ajouterChat("Début de la prochaine manche.");
                             affichageJeu.initManche(debutManche.getTableau());
                             break;
                         case "finManche":
                             FinManche finManche = gson.fromJson(donnees, FinManche.class);
-                            logger.info("Fin manche :\n" + finManche.toString());
-                            affichageJeu.setVisible(false);
+                            affichageJeu.finManche(finManche);
                             break;
                         default:
                             logger.warn(message + " n'est pas reconnu");
@@ -181,52 +178,17 @@ public class Client {
                 }
             } catch (IOException e) {
                 logger.error("Connexion au serveur interrompue");
-                this.clientTerminal.interrupt();
                 System.exit(1);
             }
         }
     }
 
-    class ClientTerminal extends Thread {
-        private Scanner scanner = new Scanner(System.in);
-        private DataOutputStream dos;
-        private Logger logger = Logger.getLogger("CLIENT");
-        private GestionnaireServeur gestionnaireServeur;
-
-        public ClientTerminal(DataOutputStream dos) {
-            super();
-            this.dos = dos;
-        }
-
-        public void setGestionnaireServeur(GestionnaireServeur gestionnaireServeur) {
-            this.gestionnaireServeur = gestionnaireServeur;
-        }
-
-        public void run() {
-            try {
-                while (true) {
-                    String msg = scanner.nextLine();
-                    dos.writeUTF(msg);
-                    if (msg.equals("stop")) {
-                        break;
-                    }
-                }
-                logger.warn("Arrêt du client");
-                gestionnaireServeur.interrupt();
-            } catch (IOException e) {
-                logger.error("Arrêt du client forcé");
-                gestionnaireServeur.interrupt();
-                System.exit(1);
-            }
-            System.exit(0);
-        }
-    }
-
-    class ClientGraphique {
+    /** Classe permettant d'envoyer des messages au serveur. */
+    class Serveur {
         private DataOutputStream dos;
         private Logger logger = Logger.getLogger("CLIENT");
 
-        public ClientGraphique(DataOutputStream dos) {
+        public Serveur(DataOutputStream dos) {
             super();
             this.dos = dos;
         }
@@ -239,6 +201,11 @@ public class Client {
             }
         }
 
+        /**
+         * Permets d'envoyer un mot au serveur.
+         *
+         * @param mot Le mot à envoyer.
+         */
         public void envoyerMotClavier(String mot) {
             var motObj = new NouveauMotClavier(mot, UUID.randomUUID().toString());
             motsEnVerification.put(motObj.getId(), mot);

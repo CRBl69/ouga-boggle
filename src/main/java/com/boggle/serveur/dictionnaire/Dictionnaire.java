@@ -8,9 +8,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /** Classe de vérification des mots. */
@@ -49,8 +49,8 @@ public class Dictionnaire {
      * @param langue la langue du dictionnaire
      * @return la liste des mots du dictionnaire
      */
-    private static List<String> listeDesMots(Langue langue) {
-        ArrayList<String> mots = new ArrayList<>();
+    private static Set<String> listeDesMots(Langue langue) {
+        HashSet<String> mots = new HashSet<>();
         try {
             String nomFichier = "/langues/"
                     + switch (langue) {
@@ -63,7 +63,7 @@ public class Dictionnaire {
             BufferedReader lecteur = new BufferedReader(new InputStreamReader(flux));
             String ligne;
             while ((ligne = lecteur.readLine()) != null) {
-                mots.add(ligne);
+                mots.add(ligne.toLowerCase());
             }
             lecteur.close();
         } catch (FileNotFoundException e) {
@@ -95,7 +95,7 @@ public class Dictionnaire {
 class Arbre {
     private Noeud tete;
 
-    public Arbre(List<String> listeDesMots) {
+    public Arbre(Set<String> listeDesMots) {
         this.tete = new Noeud(listeDesMots);
     }
 
@@ -106,29 +106,25 @@ class Arbre {
 
 class Noeud {
     private HashMap<String, Noeud> fils;
-    private boolean estUnMot = false;
+    private boolean estUnMot;
 
-    public Noeud(List<String> mots) {
+    public Noeud(Set<String> mots) {
+        this.estUnMot = mots.contains("");
+        mots.remove("");
         this.fils = new HashMap<>();
-        var premieresLettres = mots.stream().map(mot -> mot.charAt(0)).collect(Collectors.toSet());
+        var premieresLettres = mots.stream().map(mot -> mot.substring(0, 1)).collect(Collectors.toSet());
         for (var premiereLettre : premieresLettres) {
             var fils = new Noeud(mots.stream()
-                    .filter(mot -> mot.charAt(0) == premiereLettre)
+                    .filter(mot -> mot.startsWith(premiereLettre))
                     .map(mot -> mot.substring(1))
-                    .filter(mot -> {
-                        if (mot.length() == 0) {
-                            estUnMot = true;
-                        }
-                        return mot.length() > 0;
-                    })
-                    .collect(Collectors.toList()));
-            this.fils.put(premiereLettre + "", fils);
+                    .collect(Collectors.toSet()));
+            this.fils.put(premiereLettre, fils);
         }
     }
 
     public boolean estUnSousMot(String mot) {
-        if (mot.length() == 0) return estUnMot;
-        var fils = this.fils.get(mot.charAt(0) + "");
+        if (mot.isEmpty()) return estUnMot;
+        var fils = this.fils.get(mot.substring(0, 1));
         if (fils == null) return false;
         return fils.estUnSousMot(mot.substring(1));
     }

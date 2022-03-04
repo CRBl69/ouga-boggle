@@ -2,7 +2,6 @@ package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.jeu.Langue;
-import com.boggle.util.Logger;
 import java.util.LinkedList;
 
 /** Plateau du jeu contenant les lettres. */
@@ -12,7 +11,6 @@ public class Grille {
     private final int colonnes;
     private final int lignes;
     private final Langue langueChoisi;
-    private final Logger logger = Logger.getLogger("GRILLE");
 
     /**
      * Constructeur.
@@ -65,7 +63,6 @@ public class Grille {
      * @return le mot sous forme de LinkedList<Lettre> si le mot est valide, null sinon
      */
     private LinkedList<Lettre> trouverMot(String mot) {
-        logger.info(String.format("Recherche du mot %s dans la grille", mot));
         for (int i = 0; i < this.lignes; i++) {
             for (int j = 0; j < this.colonnes; j++) {
                 if (this.grille[i][j].lettre.charAt(0) == mot.charAt(0)) {

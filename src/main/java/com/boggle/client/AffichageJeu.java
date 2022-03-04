@@ -1,19 +1,22 @@
 package com.boggle.client;
 
-import com.boggle.client.Client.ClientGraphique;
+import com.boggle.client.Client.Serveur;
+import com.boggle.serveur.messages.FinManche;
 import com.boggle.serveur.messages.MotTrouve;
 import com.boggle.serveur.messages.MotVerifie;
 import com.boggle.serveur.plateau.*;
 import java.awt.*;
+import java.util.Arrays;
 import java.util.function.Consumer;
 import javax.swing.*;
+import javax.swing.text.DefaultCaret;
 
 /** Vue du jeu */
 public class AffichageJeu extends JFrame {
     private ChampDeTexte champDeTexte = new ChampDeTexte();
     private VueGrille grille;
     public VueMots mots = new VueMots();
-    private ClientGraphique client;
+    private Serveur serveur;
 
     Consumer<Mot> action;
 
@@ -25,7 +28,7 @@ public class AffichageJeu extends JFrame {
                 String mot = ac.getActionCommand();
 
                 if (mot.length() > 0) {
-                    client.envoyerMotClavier(mot);
+                    serveur.envoyerMotClavier(mot);
                 }
             });
         }
@@ -52,8 +55,14 @@ public class AffichageJeu extends JFrame {
             }
         }
 
+        /**
+         * Mets à jour la grille avec les nouvelles lettres.
+         *
+         * @param lettres nouvelles lettres
+         */
         public void miseAJour(String[][] lettres) {
             setLayout(new GridLayout(lettres[0].length, lettres.length));
+            removeAll();
             contenu = new VueCase[lettres[0].length][lettres.length];
             for (int i = 0; i < lettres.length; i++) {
                 for (int j = 0; j < lettres[0].length; j++) {
@@ -77,9 +86,14 @@ public class AffichageJeu extends JFrame {
             this.setPreferredSize(new Dimension(400, 400));
             this.setBorder(BorderFactory.createTitledBorder("Chat"));
             this.textArea = new JTextArea();
+            this.textArea.setLineWrap(true);
+            this.textArea.setWrapStyleWord(true);
             this.textArea.setFont(new Font("sans", Font.PLAIN, 14));
             this.textArea.setEditable(false);
             this.scrollPane = new JScrollPane(this.textArea);
+            this.scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+            DefaultCaret caret = (DefaultCaret) this.textArea.getCaret();
+            caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
             this.add(this.scrollPane, BorderLayout.CENTER);
         }
 
@@ -100,11 +114,11 @@ public class AffichageJeu extends JFrame {
      *
      * @param lettres la grille de lettres a utiliser j
      */
-    public AffichageJeu(ClientGraphique client) {
+    public AffichageJeu(Serveur serveur) {
         super();
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
-        this.client = client;
+        this.serveur = serveur;
 
         JPanel panel = new JPanel(new GridBagLayout());
         add(panel);
@@ -132,6 +146,11 @@ public class AffichageJeu extends JFrame {
         setVisible(true);
     }
 
+    /**
+     * Prépare l'interface pour une nouvelle manche.
+     *
+     * @param lettres nouvelles lettres
+     */
     public void initManche(String[][] lettres) {
         grille.miseAJour(lettres);
         grille.updateUI();
@@ -157,15 +176,37 @@ public class AffichageJeu extends JFrame {
         mots.ajouterChat(message);
     }
 
+    /**
+     * Affiche les informations du mot vérifié.
+     *
+     * @param mot le mot vérifié
+     */
     public void ajouterMotVerifie(MotVerifie mot) {
         if (mot.isAccepte()) {
-            mots.ajouterChat(String.format("Vous avez trouvé '%s' (+%dpts)", mot.getMot(), mot.getPoints()));
+            mots.ajouterChat(String.format("Vous avez trouvé \"%s\" (+%dpts).", mot.getMot(), mot.getPoints()));
         } else {
-            mots.ajouterChat(String.format("Le mot %s n'est pas valide", mot.getMot()));
+            mots.ajouterChat(String.format("Le mot %s n'est pas valide.", mot.getMot()));
         }
     }
 
-    public void ajouterMotTrouve(MotTrouve motTrouve) {
-        mots.ajouterChat(String.format("%s a trouvé un mot", motTrouve.getNom()));
+    /**
+     * Affiche les informations du mot trouvé.
+     *
+     * @param mot le mot trouvé
+     */
+    public void ajouterMotTrouve(MotTrouve mot) {
+        mots.ajouterChat(String.format("%s a trouvé un mot", mot.getNom()));
+    }
+
+    /**
+     * Affiche les informations de fin de manche.
+     *
+     * @param finManche les informations de fin de manche
+     */
+    public void finManche(FinManche finManche) {
+        var joueurs = Arrays.asList(finManche.getJoueurs());
+        joueurs.sort((j1, j2) -> j1.getPoints() - j2.getPoints());
+        joueurs.forEach(j -> ajouterChat(String.format("%s a %d points.", j.getNom(), j.getPoints())));
+        ajouterChat("Manche finie, la prochaine manche commence dans 10 secondes.");
     }
 }

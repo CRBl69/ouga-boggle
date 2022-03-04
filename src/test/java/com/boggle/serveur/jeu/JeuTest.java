@@ -8,6 +8,9 @@ import com.boggle.serveur.plateau.Lettre;
 import java.util.LinkedList;
 import org.junit.Test;
 
+// TODO: réparer les tests
+// L'erreur est due au fait que la classe Jeu essaye
+// d'utiliser Serveur mais on ne crée pas de Serveur.
 public class JeuTest {
     @Test
     public void creationDeJeu() {

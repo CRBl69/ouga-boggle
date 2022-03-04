@@ -1,7 +1,6 @@
 package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
-import com.boggle.util.Logger;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -11,7 +10,6 @@ public class Mot {
     private final long dateCreation;
     private static AtomicInteger cpt = new AtomicInteger(0);
     private final int id;
-    private Logger logger = Logger.getLogger("MOT");
 
     /**
      * Constructeur.
@@ -23,7 +21,6 @@ public class Mot {
         this.dateCreation = Calendar.getInstance().getTimeInMillis();
         id = cpt.getAndIncrement();
         if (!estMotValide()) {
-            logger.info("Le mot n'est pas dans le dictionnaire");
             throw new IllegalArgumentException("Le mot n'est pas valide");
         }
     }
@@ -71,5 +68,23 @@ public class Mot {
             case 7 -> 5;
             default -> 11;
         };
+    }
+
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof Mot)) {
+            return false;
+        }
+        Mot m = (Mot) o;
+        return this.toString().equals(m.toString());
+    }
+
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 }

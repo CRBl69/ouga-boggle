@@ -62,14 +62,19 @@ public class Manche {
      * @param joueur joueur qui a trouvé le mot
      */
     public int ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
+        if (mancheFinie()) return 0;
         Mot mot = grille.ajouterMot(lettre);
         if (mot != null) {
             if (!listeMots.containsKey(joueur)) {
                 listeMots.put(joueur, new HashSet<>());
             }
-            listeMots.get(joueur).add(mot);
+            if (listeMots.get(joueur).add(mot)) {
+                return mot.getPoints();
+            } else {
+                return 0;
+            }
         }
-        return mot != null ? mot.getPoints() : 0;
+        return 0;
     }
 
     /**
@@ -79,13 +84,18 @@ public class Manche {
      * @param joueur joueur qui a trouvé le mot
      */
     public int ajouterMotTrouve(String lettre, Joueur joueur) {
+        if (mancheFinie()) return 0;
         Mot mot = grille.ajouterMot(lettre);
         if (mot != null) {
             if (!listeMots.containsKey(joueur)) {
                 listeMots.put(joueur, new HashSet<>());
             }
-            listeMots.get(joueur).add(mot);
+            if (listeMots.get(joueur).add(mot)) {
+                return mot.getPoints();
+            } else {
+                return 0;
+            }
         }
-        return mot != null ? mot.getPoints() : 0;
+        return 0;
     }
 }

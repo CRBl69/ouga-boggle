@@ -6,7 +6,7 @@ import com.boggle.serveur.plateau.Coordonnee;
 public class FinManche {
     private Joueur[] joueurs;
 
-    static class Joueur {
+    public static class Joueur {
         private String nom;
         private int points;
         private Mot[] mots;
@@ -24,7 +24,7 @@ public class FinManche {
         }
     }
 
-    static class Mot {
+    public static class Mot {
         private String mot;
         private int points;
         private Coordonnee[] coordonnees;
@@ -52,7 +52,7 @@ public class FinManche {
             j.nom = joueur.nom;
             j.points = points.get(joueur);
             var liste = mots.get(joueur);
-            j.mots = new Mot[liste.size()];
+            j.mots = new Mot[liste != null ? liste.size() : 0];
             if (liste != null) {
                 int indexMots = 0;
                 for (var m : liste) {

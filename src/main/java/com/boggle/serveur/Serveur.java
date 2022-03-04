@@ -33,6 +33,7 @@ public class Serveur {
         demarerServeur();
     }
 
+    /** Démarre le serveur. */
     public void demarerServeur() {
         while (true) {
             Socket s = null;
@@ -58,6 +59,12 @@ public class Serveur {
         }
     }
 
+    /**
+     * Effectue une poignée de main avec le client.
+     *
+     * @param s socket du client
+     * @return le client si la poignée de main est valide, null sinon
+     */
     private Client poigneeDeMain(Socket s) throws IOException {
         DataInputStream dis = new DataInputStream(s.getInputStream());
         DataOutputStream dos = new DataOutputStream(s.getOutputStream());
@@ -116,13 +123,22 @@ public class Serveur {
         annoncer("motTrouve " + gson.toJson(new MotTrouve(nom)));
     }
 
+    /**
+     * Annonce un message à tous les clients.
+     *
+     * @param message message à annoncer
+     */
     private void annoncer(String message) {
         for (Client c : clients) {
             c.envoyerMessage(message);
         }
     }
 
-    private void ajouterMot(NouveauMot nouveauMot, Client client) {
+    /**
+     * @param nouveauMot le nouveau mot souris à ajouter
+     * @param client le client qui a ajouté le mot
+     */
+    private void ajouterMot(NouveauMotSouris nouveauMot, Client client) {
         LinkedList<Lettre> liste = new LinkedList<>();
         for (Lettre l : nouveauMot.getLettres()) {
             liste.add(l);
@@ -142,6 +158,10 @@ public class Serveur {
         client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
     }
 
+    /**
+     * @param nouveauMot le nouveau mot clavier à ajouter
+     * @param client le client qui a ajouté le mot
+     */
     private void ajouterMot(NouveauMotClavier nouveauMot, Client client) {
         int valide = jeu.ajouterMotTrouve(
                 nouveauMot.getMot(),
@@ -158,6 +178,7 @@ public class Serveur {
         client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
     }
 
+    /** Classe qui gère les messages envoyés par le client. */
     private class GestionnaireClient extends Thread {
         private Client client;
 
@@ -199,7 +220,7 @@ public class Serveur {
                             }
                             break;
                         case "motSouris":
-                            NouveauMot mot = gson.fromJson(donnees, NouveauMot.class);
+                            NouveauMotSouris mot = gson.fromJson(donnees, NouveauMotSouris.class);
                             mot.setAuteur(client.nom);
                             ajouterMot(mot, client);
                             break;
@@ -223,7 +244,7 @@ public class Serveur {
                         break;
                     }
                 } catch (IOException e) {
-                    logger.error("Perte de connexion du client \"" + client.nom + "\"");
+                    logger.warn("Perte de connexion du client \"" + client.nom + "\"");
                     annoncerDeconnextion(client);
                     clients.remove(client);
                     break;
@@ -232,6 +253,12 @@ public class Serveur {
         }
     }
 
+    /**
+     * Classe qui représente un client.
+     *
+     * Elle stocke son socket, son output stream, son input stream, son status
+     * et son pseudo.
+     */
     class Client {
         public final DataOutputStream dos;
         public final DataInputStream dis;
@@ -246,14 +273,23 @@ public class Serveur {
             this.nom = nom;
         }
 
+        /**
+         * Envoie un message à ce client.
+         *
+         * @param message message à envoyer
+         */
         public void envoyerMessage(String s) {
             try {
                 this.dos.writeUTF(s);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            logger.info("Message envoyé : " + s);
         }
 
+        /**
+         * Arrête la connexion au client.
+         */
         private void arreter() {
             try {
                 this.s.close();

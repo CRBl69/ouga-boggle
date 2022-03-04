@@ -16,6 +16,9 @@ public class DictionnaireTest {
         assertTrue(Dictionnaire.estUnMot("chapeau"));
         assertTrue(Dictionnaire.estUnMot("cheval"));
         assertTrue(Dictionnaire.estUnMot("a"));
+        assertTrue(Dictionnaire.estUnMot("des"));
+        assertTrue(Dictionnaire.estUnMot("desabonnaient"));
+        assertFalse(Dictionnaire.estUnMot("desabonnaien"));
         assertFalse(Dictionnaire.estUnMot("hfaghd"));
         assertFalse(Dictionnaire.estUnMot("friend"));
         assertFalse(Dictionnaire.estUnMot(""));
@@ -42,8 +45,8 @@ public class DictionnaireTest {
     @Test
     public void trouveLesMotsAllemands() {
         Dictionnaire.genererArbre(Langue.DE);
-        //assertTrue(Dictionnaire.estUnMot("mitteilenswerter"));
-        assertTrue(Dictionnaire.estUnMot("Verfahrensstufe"));
+        assertTrue(Dictionnaire.estUnMot("mitteilenswerter"));
+        assertTrue(Dictionnaire.estUnMot("verfahrensstufe"));
         assertFalse(Dictionnaire.estUnMot("bonjour"));
         assertFalse(Dictionnaire.estUnMot(""));
     }

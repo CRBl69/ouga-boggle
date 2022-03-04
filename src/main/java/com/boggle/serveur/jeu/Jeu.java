@@ -91,17 +91,19 @@ public class Jeu {
                         Thread.sleep(dureeManche * 1000);
                         serveur.annoncerFinManche();
                         if (manches.size() < nombreMancheTotal) {
+                            Thread.sleep(10000);
                             nouvelleManche();
                         } else {
                             serveur.annoncerFinPartie();
                         }
-                        nouvelleManche();
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             };
             t.start();
+        } else {
+            // TODO: implémenter une manche sans minuteur (par vote ?)
         }
     }
 
