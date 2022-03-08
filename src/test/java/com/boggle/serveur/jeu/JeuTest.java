@@ -3,21 +3,39 @@ package com.boggle.serveur.jeu;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import com.boggle.serveur.ServeurInterface;
 import com.boggle.serveur.plateau.Coordonnee;
 import com.boggle.serveur.plateau.Lettre;
 import java.util.LinkedList;
+import org.junit.Before;
 import org.junit.Test;
 
-// TODO: réparer les tests
 // L'erreur est due au fait que la classe Jeu essaye
 // d'utiliser Serveur mais on ne crée pas de Serveur.
 public class JeuTest {
+    ServeurInterface serveur = null;
+
+    @Before
+    public void setUp() {
+        serveur = new ServeurInterface() {
+            public void annoncerDebutPartie() {}
+
+            public void annoncerFinPartie() {}
+
+            public void annoncerDebutManche() {}
+
+            public void annoncerFinManche() {}
+
+            public void annoncerMotTrouve(String nom) {}
+        };
+    }
+
     @Test
     public void creationDeJeu() {
-        new Jeu(3, 60, 4, 4, Langue.FR, null);
+        new Jeu(3, 60, 4, 4, Langue.FR, serveur);
 
         try {
-            new Jeu(-1, -1, -1, -1, Langue.FR, null);
+            new Jeu(-1, -1, -1, -1, Langue.FR, serveur);
             assertTrue(false);
         } catch (IllegalArgumentException e) {
             assertTrue(true);
@@ -26,7 +44,7 @@ public class JeuTest {
 
     @Test
     public void ajouterJoueur() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, null);
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
 
         jeu.ajouterJoueur(new Joueur("Bogdan"));
         assertTrue(jeu.getJoueurs().size() == 1);
@@ -37,7 +55,7 @@ public class JeuTest {
 
     @Test
     public void ajouterMotTrouve() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, null);
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
         Joueur joueur = new Joueur("Bogdan");
         jeu.ajouterJoueur(joueur);
 
@@ -55,7 +73,6 @@ public class JeuTest {
         lettres.add(jeu.getMancheCourante().getGrille().getGrille()[0][1]);
         lettres.add(jeu.getMancheCourante().getGrille().getGrille()[0][2]);
         lettres.add(jeu.getMancheCourante().getGrille().getGrille()[0][3]);
-        System.out.println(lettres.toString());
         jeu.ajouterMotTrouve(lettres, joueur);
 
         assertEquals(1, (int) (jeu.getPoints().get(joueur)));
@@ -63,7 +80,7 @@ public class JeuTest {
 
     @Test
     public void joueurGagnants() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, null);
+        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
         Joueur joueur1 = new Joueur("Bogdan");
         Joueur joueur2 = new Joueur("Claire");
         jeu.ajouterJoueur(joueur1);

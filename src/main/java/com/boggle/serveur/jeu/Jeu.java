@@ -1,6 +1,6 @@
 package com.boggle.serveur.jeu;
 
-import com.boggle.serveur.Serveur;
+import com.boggle.serveur.ServeurInterface;
 import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
@@ -19,7 +19,7 @@ public class Jeu {
     private int tailleVerticale;
     private int tailleHorizontale;
     private Langue langue;
-    private Serveur serveur;
+    private ServeurInterface serveur;
 
     public Jeu(
             int nombreManche,
@@ -27,7 +27,7 @@ public class Jeu {
             int tailleVerticale,
             int tailleHorizontale,
             Langue langue,
-            Serveur serveur) {
+            ServeurInterface serveur) {
         this.serveur = serveur;
         this.joueurs = new HashSet<>();
         this.manches = new ArrayList<>();

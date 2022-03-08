@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 /** Gère la communication avec tous les clients. */
-public class Serveur {
+public class Serveur implements ServeurInterface {
     private Logger logger = Logger.getLogger("SERVEUR");
     private ServerSocket serveur;
     private ArrayList<Client> clients = new ArrayList<>();
@@ -303,5 +303,14 @@ public class Serveur {
 
     private boolean tousLesClientsSontPrets() {
         return clients.stream().allMatch(c -> c.pret);
+    }
+
+    public void stop() {
+        try {
+            clients.forEach(c -> c.arreter());
+            serveur.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

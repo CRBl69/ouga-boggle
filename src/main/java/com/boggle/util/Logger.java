@@ -12,7 +12,11 @@ public class Logger {
     private static int defaultLogLevel = INFO;
 
     public Logger(String tag, int level) {
-        switch (System.getenv("BOGGLE_LOG")) {
+        String log = System.getenv("BOGGLE_LOG");
+        if (log == null) {
+            log = "";
+        }
+        switch (log) {
             case "INFO":
                 defaultLogLevel = INFO;
                 break;
