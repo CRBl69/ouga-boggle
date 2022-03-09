@@ -1,18 +1,26 @@
 package com.boggle.ouga;
 
+import java.io.IOException;
+
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
-import com.beust.jcommander.ParametersDelegate;
 import com.boggle.client.AffichageConfigurationClient;
 import com.boggle.client.AffichageConfigurationServeur;
 import com.boggle.util.Util;
 import java.awt.*;
 import javax.swing.UIManager;
+import com.boggle.client.Client;
+import com.boggle.serveur.Serveur;
+import com.boggle.serveur.jeu.ConfigurationClient;
+import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Langue;
+import com.boggle.util.ConnexionServeurException;
+import com.boggle.util.Logger;
 
 /** lancement du jeu */
 public class App {
+    private static Logger logger = Logger.getLogger("APP");
 
     public static void main(String[] args) {
         // Active le anti-aliasing pour que le texte ne soit pas pixelisé
@@ -24,31 +32,9 @@ public class App {
         // Utilise le style de l'OS
         try {
             UIManager.setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
 
-        if (args.length != 1) {
-            System.out.println("Vous devez démarer un serveur ou un client");
-            System.exit(1);
-        }
-        if (args[0].equals("serveur")) {
-            if(args[1] != "") {
-                LanceDepuisLigneDeCommande(args, false);
-            } else {
-                var a = new AffichageConfigurationServeur();
-                a.setVisible(true);
-            }
-        } else if (args[0].equals("client")) {
-            if(args[1] != "") {
-                LanceDepuisLigneDeCommande(args, true);
-            } else {
-                var a = new AffichageConfigurationClient();
-                a.setVisible(true);
-            }
-        } else {
-            System.out.println("Vous devez démarer un serveur ou un client");
-            System.exit(1);
-        }
+        lanceDepuisLigneDeCommande(args);
     }
 
     /**
@@ -56,98 +42,108 @@ public class App {
      * @param args arguments passés dans la ligne de commande
      * @param client true si on lance un client sinon false
      */
-    private static void LanceDepuisLigneDeCommande(String[] args, boolean client) {
-        ArgumentsClient argClient = new ArgumentsClient();
-        ArgumentsServeur argServeur = new ArgumentsServeur();
+    private static void lanceDepuisLigneDeCommande(String[] args) {
+        ArgumentsMain argsMain = new ArgumentsMain();
+        ArgumentsClient argsClient = new ArgumentsClient();
+        ArgumentsServeur argsServeur = new ArgumentsServeur();
+        var jc = JCommander.newBuilder()
+            .addObject(argsMain)
+            .addCommand("serveur", argsServeur)
+            .addCommand("client", argsClient)
+            .build();
         try {
-            var jc = JCommander.newBuilder()
-                .addObject(client?argClient:argServeur)
-                .addCommand("serveur", argServeur)
-                .addCommand("client", argClient)
-                .build();
             jc.parse(args);
+            if(argsMain.gui != null) {
+                if(argsMain.gui.equals("client")) {
+                    new AffichageConfigurationClient().setVisible(true);
+                    return;
+                } else if(argsMain.gui.equals("client")) {
+                    new AffichageConfigurationServeur().setVisible(true);
+                    return;
+                }
+            }
+            if(jc.getParsedCommand().equals("client")) {
+                ConfigurationClient configClient = new ConfigurationClient(
+                    argsClient.getHost(),
+                    argsMain.getPort(),
+                    argsClient.getPseudo(),
+                    argsMain.getMotDePasse());
+                    try {
+                        new Client(configClient);
+                    } catch (ConnexionServeurException e) {
+                        logger.error("Impossible de se connecter au serveur.");
+                    }
+            } else {
+                ConfigurationServeur configServeur = new ConfigurationServeur(
+                    argsMain.getPort(),
+                    argsServeur.getNbJoueursMax(),
+                    argsServeur.getNbManches(),
+                    argsServeur.getTimer(),
+                    argsServeur.getTailleGrilleH(),
+                    argsServeur.getTailleGrilleV(),
+                    argsServeur.getLangue(),
+                    argsMain.getMotDePasse());
+                    try {
+                        new Serveur(configServeur);
+                    } catch (IOException e) {
+                        logger.error("Impossible de créer un serveur.");
+                    }
+            }
         } catch(ParameterException e) {
-            afficheHelp(client);
+            afficheHelp(jc);
             System.exit(1);
         }
     }
 
-    private static void afficheHelp(boolean client) {
-        var jct = JCommander.newBuilder()
-            .addObject(client? new ArgumentsClient():new ArgumentsServeur())
-            .build();
+    private static void afficheHelp(JCommander jct) {
         jct.usage();
         System.exit(0);
     }
 }
 
-class Port {
-    @Parameter(names = "--port")
-    private int port;
-
-    public int getPort() {
-        return port;
-    }
-}
 class ArgumentsClient {
-    @ParametersDelegate
-    private Port port = new Port();
-
-    @Parameter(names = "--pseudo", description = "Pseudo de l'utilisateur")
+    @Parameter(names = {"--pseudo","-P"}, description = "Pseudo de l'utilisateur", required = true)
     private String pseudo;
-    
-    @Parameter(names = "--ip")
-    private String ip;
 
-    @Parameter(names = "--mdp", description = "Mot de passe")
-    private String mdp;
-
-    public int getPort() {
-        return port.getPort();
-    }
+    @Parameter(names = {"--host","-h"})
+    private String host;
 
     public String getPseudo() {
         return pseudo;
     }
 
-    public String getIp() {
-        return ip;
-    }
-
-    public String getMdp() {
-        return mdp;
+    public String getHost() {
+        return host;
     }
 
 }
 
 class ArgumentsServeur {
-    @ParametersDelegate
-    private Port port = new Port();
+    @Parameter(names = {"--nombre-manche","-n"}, description = "Nombre de manche de la partie")
+    private int nbManche = 3;
 
-    @Parameter(names = "--nbManche", description = "Nombre de manche de la partie")
-    private String nbManche;
+    @Parameter(names = {"--minuteur","-t"}, description = "Le temps du minuteur en secondes")
+    private int timer = 60;
 
-    @Parameter(names = "--timer", description = "Le temps du timer en seconde")
-    private int timer;
+    @Parameter(names = {"--taille-grille-horizontale","-h"}, description = "Dimension horizontale de la grille")
+    private int tailleGrilleH = 4;
 
-    @Parameter(names = "--tailleGrilleH", description = "Dimension horizontale de la grille")
-    private int tailleGrilleH;
+    @Parameter(names = {"--taille-grille-verticale","-v"}, description = "Dimension verticale de la grille")
+    private int tailleGrilleV = 4;
 
-    @Parameter(names = "--tailleGrilleV", description = "Dimension verticale de la grille")
-    private int tailleGrilleV;
+    @Parameter(names = {"--langue","-l"}, converter = Langue.class)
+    private Langue langue = Langue.FR;
 
-    @Parameter(names = "--langue", converter = Langue.class)
-    private Langue langue;
+    @Parameter(names = {"--joueurs-max","-j"}, description = "Nombre maximal de joueurs")
+    private int nbJoueursMax = 10;
 
-    @Parameter(names = "--mdp", description = "Mot de passe")
-    private String mdp;
 
-    public int getPort() {
-        return port.getPort();
+    public int getNbManches() {
+        return nbManche;
     }
 
-    public String getNbManche() {
-        return nbManche;
+    public int getNbJoueursMax() {
+        return nbJoueursMax;
     }
 
     public int getTimer() {
@@ -165,8 +161,11 @@ class ArgumentsServeur {
     public Langue getLangue() {
         return langue;
     }
+<<<<<<< HEAD
 
     public String getMdp() {
         return mdp;
     }
+=======
+>>>>>>> 6422e55 (Finalisation des paramètres de commande)
 }
