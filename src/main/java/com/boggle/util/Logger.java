@@ -12,6 +12,21 @@ public class Logger {
     private static int defaultLogLevel = INFO;
 
     public Logger(String tag, int level) {
+        String log = System.getenv("BOGGLE_LOG");
+        if (log == null) {
+            log = "";
+        }
+        switch (log) {
+            case "INFO":
+                defaultLogLevel = INFO;
+                break;
+            case "WARN":
+                defaultLogLevel = WARN;
+                break;
+            default:
+                defaultLogLevel = ERROR;
+                break;
+        }
         this.tag = tag;
         this.level = level;
     }

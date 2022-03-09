@@ -28,4 +28,8 @@ public class Coordonnee {
     public boolean estSur(Coordonnee coord) {
         return this.x == coord.x && this.y == coord.y;
     }
+
+    public String toString() {
+        return String.format("(%d, %d)", this.x, this.y);
+    }
 }

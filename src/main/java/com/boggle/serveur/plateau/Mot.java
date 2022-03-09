@@ -20,10 +20,11 @@ public class Mot {
         this.lettres = lettres;
         this.dateCreation = Calendar.getInstance().getTimeInMillis();
         id = cpt.getAndIncrement();
-        if (!estMotValide()) throw new IllegalArgumentException("le mot n'est pas valide");
+        if (!estMotValide()) {
+            throw new IllegalArgumentException("Le mot n'est pas valide");
+        }
     }
 
-    // TODO: à finir quand le dictionnaire sera disponible
     /**
      * Vérifie si la liste de lettres est considéré comme un mot valide selon les règles de Boogle et le dictionnaire de la langue choisie
      *
@@ -31,7 +32,7 @@ public class Mot {
      * @return boolean true si le mot est valide
      */
     private boolean estMotValide() {
-        return Dictionnaire.estUnMot(toString()) && lettres.size() > 3;
+        return Dictionnaire.estUnMot(toString()) && lettres.size() >= 3;
     }
 
     public String toString() {
@@ -52,5 +53,38 @@ public class Mot {
 
     public int getId() {
         return id;
+    }
+
+    public int getPoints() {
+        return Mot.getPoints(this.toString());
+    }
+
+    public static int getPoints(String mot) {
+        return switch (mot.length()) {
+            case 3 -> 1;
+            case 4 -> 1;
+            case 5 -> 2;
+            case 6 -> 3;
+            case 7 -> 5;
+            default -> 11;
+        };
+    }
+
+    public boolean equals(Object o) {
+        if (o == null) {
+            return false;
+        }
+        if (o == this) {
+            return true;
+        }
+        if (!(o instanceof Mot)) {
+            return false;
+        }
+        Mot m = (Mot) o;
+        return this.toString().equals(m.toString());
+    }
+
+    public int hashCode() {
+        return this.toString().hashCode();
     }
 }

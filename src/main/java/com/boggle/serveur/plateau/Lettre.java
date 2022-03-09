@@ -35,7 +35,7 @@ public class Lettre {
         return this.coord.estSur(lettre.coord);
     }
 
-    public String getString() {
+    public String toString() {
         return lettre;
     }
 }

@@ -1,6 +1,9 @@
 package com.boggle.serveur.jeu;
 
+import com.boggle.serveur.ServeurInterface;
+import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
+import com.boggle.serveur.plateau.Mot;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,15 +14,21 @@ import java.util.List;
 public class Jeu {
     private HashSet<Joueur> joueurs;
     private ArrayList<Manche> manches;
-
-    // Parametres
     private int nombreMancheTotal;
     private int dureeManche;
     private int tailleVerticale;
     private int tailleHorizontale;
     private Langue langue;
+    private ServeurInterface serveur;
 
-    public Jeu(int nombreManche, int dureeManche, int tailleVerticale, int tailleHorizontale, Langue langue) {
+    public Jeu(
+            int nombreManche,
+            int dureeManche,
+            int tailleVerticale,
+            int tailleHorizontale,
+            Langue langue,
+            ServeurInterface serveur) {
+        this.serveur = serveur;
         this.joueurs = new HashSet<>();
         this.manches = new ArrayList<>();
         this.nombreMancheTotal = nombreManche;
@@ -50,7 +59,12 @@ public class Jeu {
     }
 
     public void commencerPartie() {
+        serveur.annoncerDebutPartie();
         nouvelleManche();
+    }
+
+    public boolean partieEstCommencee() {
+        return !manches.isEmpty();
     }
 
     /**
@@ -69,6 +83,28 @@ public class Jeu {
      */
     public void nouvelleManche() {
         manches.add(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue));
+        serveur.annoncerDebutManche();
+        if (dureeManche != 0) {
+            Thread t = new Thread() {
+                public void run() {
+                    try {
+                        Thread.sleep(dureeManche * 1000);
+                        serveur.annoncerFinManche();
+                        if (manches.size() < nombreMancheTotal) {
+                            Thread.sleep(10000);
+                            nouvelleManche();
+                        } else {
+                            serveur.annoncerFinPartie();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+            t.start();
+        } else {
+            // TODO: implémenter une manche sans minuteur (par vote ?)
+        }
     }
 
     /**
@@ -112,9 +148,19 @@ public class Jeu {
     /**
      * @param lettre les lettres trouvés
      * @param joueur joueur qui a trouvé les lettres
+     * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
      */
-    public void ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
-        getMancheCourante().ajouterMotTrouve(lettre, joueur);
+    public int ajouterMotTrouve(LinkedList<Lettre> lettres, Joueur joueur) {
+        return getMancheCourante().ajouterMotTrouve(lettres, joueur);
+    }
+
+    /**
+     * @param lettre les lettres trouvés
+     * @param joueur joueur qui a trouvé les lettres
+     * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
+     */
+    public int ajouterMotTrouve(String mot, Joueur joueur) {
+        return getMancheCourante().ajouterMotTrouve(mot, joueur);
     }
 
     public HashMap<Joueur, Integer> getPoints() {
@@ -129,5 +175,13 @@ public class Jeu {
             }
         }
         return pointsParJoueur;
+    }
+
+    public Grille getGrille() {
+        return getMancheCourante().getGrille();
+    }
+
+    public HashMap<Joueur, HashSet<Mot>> getListeMots() {
+        return getMancheCourante().getListeMots();
     }
 }

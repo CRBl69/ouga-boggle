@@ -7,4 +7,8 @@ public class Joueur {
     public Joueur(String nom) {
         this.nom = nom;
     }
+
+    public String toString() {
+        return nom;
+    }
 }

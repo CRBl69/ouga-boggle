@@ -2,6 +2,7 @@ package com.boggle.serveur;
 
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Jeu;
+import com.boggle.serveur.jeu.Joueur;
 import com.boggle.serveur.messages.*;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.util.Logger;
@@ -15,21 +16,24 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 
 /** Gère la communication avec tous les clients. */
-public class Serveur {
+public class Serveur implements ServeurInterface {
     private Logger logger = Logger.getLogger("SERVEUR");
     private ServerSocket serveur;
     private ArrayList<Client> clients = new ArrayList<>();
     private String motDePasse;
     private Gson gson = new Gson();
     private Jeu jeu;
+    private ConfigurationServeur configuration;
 
     public Serveur(ConfigurationServeur c) throws IOException {
+        this.configuration = c;
         this.motDePasse = c.mdp;
         serveur = new ServerSocket(c.port);
-        jeu = new Jeu(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue);
+        jeu = new Jeu(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
         demarerServeur();
     }
 
+    /** Démarre le serveur. */
     public void demarerServeur() {
         while (true) {
             Socket s = null;
@@ -55,6 +59,12 @@ public class Serveur {
         }
     }
 
+    /**
+     * Effectue une poignée de main avec le client.
+     *
+     * @param s socket du client
+     * @return le client si la poignée de main est valide, null sinon
+     */
     private Client poigneeDeMain(Socket s) throws IOException {
         DataInputStream dis = new DataInputStream(s.getInputStream());
         DataOutputStream dos = new DataOutputStream(s.getOutputStream());
@@ -64,7 +74,9 @@ public class Serveur {
         String motDePasse = dis.readUTF();
 
         if (motDePasse.equals(this.motDePasse)) {
-            dos.writeUTF("OK");
+            long nPrets = clients.stream().filter((c) -> c.pret).count();
+            int nClients = clients.size() + 1;
+            dos.writeUTF(String.format("OK %d %d", nPrets, nClients));
             return new Client(s, dos, dis, nom);
         } else {
             dos.writeUTF("NOPE");
@@ -87,25 +99,86 @@ public class Serveur {
         annoncer(String.format("deconnexion {\"nom\": \"%s\"}", c.nom));
     }
 
+    private void annoncerStatus(Status status) {
+        annoncer("status " + gson.toJson(status));
+    }
+
+    public void annoncerDebutPartie() {
+        annoncer("debutJeu " + gson.toJson(new ConfigDebut(configuration.nbManches, configuration.timer)));
+    }
+
+    public void annoncerFinPartie() {
+        annoncer("finJeu");
+    }
+
+    public void annoncerDebutManche() {
+        annoncer("debutManche " + gson.toJson(new DebutManche(jeu.getGrille())));
+    }
+
+    public void annoncerFinManche() {
+        annoncer("finManche " + gson.toJson(new FinManche(jeu)));
+    }
+
+    public void annoncerMotTrouve(String nom) {
+        annoncer("motTrouve " + gson.toJson(new MotTrouve(nom)));
+    }
+
+    /**
+     * Annonce un message à tous les clients.
+     *
+     * @param message message à annoncer
+     */
     private void annoncer(String message) {
         for (Client c : clients) {
             c.envoyerMessage(message);
         }
     }
 
-    private void ajouterMot(NouveauMot nouveauMot) {
-        try {
-            LinkedList<Lettre> liste = new LinkedList<>();
-            for (Lettre l : nouveauMot.getLettres()) {
-                liste.add(l);
-            }
-            logger.info("Mot valide");
-            // jeu.ajouterMotTrouve(m);
-        } catch (IllegalArgumentException e) {
-            logger.error("Mot invalide");
+    /**
+     * @param nouveauMot le nouveau mot souris à ajouter
+     * @param client le client qui a ajouté le mot
+     */
+    private void ajouterMot(NouveauMotSouris nouveauMot, Client client) {
+        LinkedList<Lettre> liste = new LinkedList<>();
+        for (Lettre l : nouveauMot.getLettres()) {
+            liste.add(l);
         }
+        int valide = jeu.ajouterMotTrouve(
+                liste,
+                jeu.getJoueurs().stream()
+                        .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
+                        .findFirst()
+                        .get());
+        if (valide > 0) {
+            logger.info("Mot valide");
+            annoncerMotTrouve(nouveauMot.getAuteur());
+        } else {
+            logger.info("Mot invalide");
+        }
+        client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
     }
 
+    /**
+     * @param nouveauMot le nouveau mot clavier à ajouter
+     * @param client le client qui a ajouté le mot
+     */
+    private void ajouterMot(NouveauMotClavier nouveauMot, Client client) {
+        int valide = jeu.ajouterMotTrouve(
+                nouveauMot.getMot(),
+                jeu.getJoueurs().stream()
+                        .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
+                        .findFirst()
+                        .get());
+        if (valide > 0) {
+            logger.info("Mot valide");
+            annoncerMotTrouve(nouveauMot.getAuteur());
+        } else {
+            logger.info("Mot invalide");
+        }
+        client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
+    }
+
+    /** Classe qui gère les messages envoyés par le client. */
     private class GestionnaireClient extends Thread {
         private Client client;
 
@@ -131,13 +204,30 @@ public class Serveur {
                             chat.setAuteur(client.nom);
                             annoncerMessage(chat);
                             break;
-                        case "pret":
+                        case "status":
+                            if (jeu.partieEstCommencee()) break;
+                            Status status = gson.fromJson(donnees, Status.class);
+                            status.setAuteur(client.nom);
+                            annoncerStatus(status);
+
+                            client.pret = true;
+                            if (tousLesClientsSontPrets()) {
+                                jeu.commencerPartie();
+                                clients.forEach(c -> {
+                                    Joueur j = new Joueur(c.nom);
+                                    jeu.ajouterJoueur(j);
+                                });
+                            }
                             break;
-                        case "pasPret":
+                        case "motSouris":
+                            NouveauMotSouris mot = gson.fromJson(donnees, NouveauMotSouris.class);
+                            mot.setAuteur(client.nom);
+                            ajouterMot(mot, client);
                             break;
-                        case "mot":
-                            NouveauMot mot = gson.fromJson(donnees, NouveauMot.class);
-                            ajouterMot(mot);
+                        case "motClavier":
+                            NouveauMotClavier motClavier = gson.fromJson(donnees, NouveauMotClavier.class);
+                            motClavier.setAuteur(client.nom);
+                            ajouterMot(motClavier, client);
                             break;
                         case "stop":
                             exit = true;
@@ -154,7 +244,7 @@ public class Serveur {
                         break;
                     }
                 } catch (IOException e) {
-                    logger.error("Perte de connexion du client \"" + client.nom + "\"");
+                    logger.warn("Perte de connexion du client \"" + client.nom + "\"");
                     annoncerDeconnextion(client);
                     clients.remove(client);
                     break;
@@ -163,11 +253,18 @@ public class Serveur {
         }
     }
 
+    /**
+     * Classe qui représente un client.
+     *
+     * Elle stocke son socket, son output stream, son input stream, son status
+     * et son pseudo.
+     */
     class Client {
         public final DataOutputStream dos;
         public final DataInputStream dis;
         public final Socket s;
         public final String nom;
+        public boolean pret;
 
         private Client(Socket s, DataOutputStream dos, DataInputStream dis, String nom) {
             this.s = s;
@@ -176,14 +273,23 @@ public class Serveur {
             this.nom = nom;
         }
 
+        /**
+         * Envoie un message à ce client.
+         *
+         * @param message message à envoyer
+         */
         public void envoyerMessage(String s) {
             try {
                 this.dos.writeUTF(s);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            logger.info("Message envoyé : " + s);
         }
 
+        /**
+         * Arrête la connexion au client.
+         */
         private void arreter() {
             try {
                 this.s.close();
@@ -192,6 +298,19 @@ public class Serveur {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private boolean tousLesClientsSontPrets() {
+        return clients.stream().allMatch(c -> c.pret);
+    }
+
+    public void stop() {
+        try {
+            clients.forEach(c -> c.arreter());
+            serveur.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }

@@ -6,7 +6,19 @@ public class Chat {
 
     public Chat() {}
 
+    public String getMessage() {
+        return message;
+    }
+
+    public String getAuteur() {
+        return auteur;
+    }
+
     public void setAuteur(String auteur) {
         this.auteur = auteur;
+    }
+
+    public String toString() {
+        return String.format("%s : %s", auteur, message);
     }
 }
