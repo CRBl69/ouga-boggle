@@ -98,4 +98,8 @@ public class Manche {
         }
         return 0;
     }
+
+    public HashMap<Joueur, HashSet<Mot>> getMots() {
+        return listeMots;
+    }
 }

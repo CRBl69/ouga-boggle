@@ -4,11 +4,18 @@ import com.boggle.serveur.ServeurInterface;
 import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.boggle.serveur.Serveur;
+import com.boggle.serveur.plateau.Lettre;
+import com.google.gson.Gson;
 
 /** Fonctions relatives à la partie. */
 public abstract class Jeu {
@@ -225,5 +232,21 @@ public abstract class Jeu {
     public enum Modes {
         NORMAL,
         BATTLE_ROYALE,
+    }
+
+    public void sauvegarderHistorique() {
+        Historique h = new Historique(manches);
+        Gson gson = new Gson();
+
+        String json = gson.toJson(h);
+
+        try {
+            // TODO: verifier que le dossier existe (et sinon le creer)
+            FileWriter fw = new FileWriter(Serveur.DOSSIER_SAUVEGARDES + "/" + Instant.EPOCH + ".json");
+            fw.write(json);
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

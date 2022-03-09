@@ -10,14 +10,22 @@ import com.boggle.util.Logger;
 import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
 /** Gère la communication avec tous les clients. */
 public class Serveur implements ServeurInterface {
+    public static final String DOSSIER_SAUVEGARDES = "~/.local/share/ouga-boggle/saves";
+    public static final String DOSSIER_HISTORIQUE = "~/.local/share/ouga-boggle/history";
     private Logger logger = Logger.getLogger("SERVEUR");
     private ServerSocket serveur;
     private ArrayList<Client> clients = new ArrayList<>();
@@ -31,6 +39,9 @@ public class Serveur implements ServeurInterface {
     public Serveur(ConfigurationServeur c) throws IOException {
         this.configuration = c;
         this.motDePasse = c.mdp;
+/*         if(c.sauvegarde != null) {
+            recharger(c.sauvegarde);
+        } */
         serveur = new ServerSocket(c.port);
         demarerServeur();
     }
@@ -41,6 +52,36 @@ public class Serveur implements ServeurInterface {
             case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
             default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);};
         jeu.demarrerJeu();
+    }
+
+    private void sauvegarder() {
+        // TODO: checker que le dossier de sauvegardes existe
+        ObjectOutputStream obj;
+        try {
+            obj = new ObjectOutputStream(new FileOutputStream(String.format("%s/%s.ser", DOSSIER_SAUVEGARDES, Instant.EPOCH)));
+            obj.writeObject(jeu);
+            obj.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void reprendre(String sauvegarde) {
+        // TODO: s'occuper du timer
+        ObjectInputStream obj;
+        try {
+            obj = new ObjectInputStream(new FileInputStream(sauvegarde));
+            jeu = (Jeu) obj.readObject();
+            obj.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /** Démarre le serveur. */
