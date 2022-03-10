@@ -61,7 +61,7 @@ public class Manche {
      * @param lettre mot qui a été trouvé
      * @param joueur joueur qui a trouvé le mot
      */
-    public int ajouterMotTrouve(LinkedList<Lettre> lettre, Joueur joueur) {
+    public int ajouterMot(LinkedList<Lettre> lettre, Joueur joueur) {
         if (mancheFinie()) return 0;
         Mot mot = grille.ajouterMot(lettre);
         if (mot != null) {
@@ -83,7 +83,7 @@ public class Manche {
      * @param lettre mot qui a été trouvé
      * @param joueur joueur qui a trouvé le mot
      */
-    public int ajouterMotTrouve(String lettre, Joueur joueur) {
+    public int ajouterMot(String lettre, Joueur joueur) {
         if (mancheFinie()) return 0;
         Mot mot = grille.ajouterMot(lettre);
         if (mot != null) {

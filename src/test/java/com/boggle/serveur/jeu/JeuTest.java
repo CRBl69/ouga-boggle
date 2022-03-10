@@ -32,14 +32,20 @@ public class JeuTest {
 
     @Test
     public void creationDeJeu() {
-        new Jeu(3, 60, 4, 4, Langue.FR, serveur);
+        var jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
 
+        jeu.commencerPartie();
+
+        assertEquals(4, jeu.getGrille().getColonnes());
+        assertEquals(4, jeu.getGrille().getLignes());
+
+        var erreur = false;
         try {
             new Jeu(-1, -1, -1, -1, Langue.FR, serveur);
-            assertTrue(false);
         } catch (IllegalArgumentException e) {
-            assertTrue(true);
+            erreur = true;
         }
+        assertTrue(erreur);
     }
 
     @Test
@@ -73,9 +79,10 @@ public class JeuTest {
         lettres.add(jeu.getMancheCourante().getGrille().getGrille()[0][1]);
         lettres.add(jeu.getMancheCourante().getGrille().getGrille()[0][2]);
         lettres.add(jeu.getMancheCourante().getGrille().getGrille()[0][3]);
-        jeu.ajouterMotTrouve(lettres, joueur);
+        jeu.ajouterMot(lettres, joueur);
 
         assertEquals(1, (int) (jeu.getPoints().get(joueur)));
+        assertEquals(1, jeu.getListeMots().get(joueur).size());
     }
 
     @Test
@@ -90,13 +97,14 @@ public class JeuTest {
 
         assertEquals(2, jeu.getJoueurGagnant().size());
 
-        LinkedList<Lettre> lettres = new LinkedList<>();
-        lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
-        lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
-        lettres.add(new Lettre(new Coordonnee(0, 2), "s"));
-        lettres.add(new Lettre(new Coordonnee(0, 3), "t"));
+        var grille = jeu.getMancheCourante().getGrille().getGrille();
 
-        jeu.ajouterMotTrouve(lettres, joueur1);
+        grille[0][0] = new Lettre(new Coordonnee(0, 0), "p");
+        grille[0][1] = new Lettre(new Coordonnee(0, 1), "r");
+        grille[0][2] = new Lettre(new Coordonnee(0, 2), "e");
+        grille[0][3] = new Lettre(new Coordonnee(0, 3), "t");
+
+        jeu.ajouterMot("pret", joueur1);
         assertEquals(joueur1, jeu.getJoueurGagnant().get(0));
     }
 }

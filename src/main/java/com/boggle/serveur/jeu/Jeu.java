@@ -150,8 +150,8 @@ public class Jeu {
      * @param joueur joueur qui a trouvé les lettres
      * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
      */
-    public int ajouterMotTrouve(LinkedList<Lettre> lettres, Joueur joueur) {
-        return getMancheCourante().ajouterMotTrouve(lettres, joueur);
+    public int ajouterMot(LinkedList<Lettre> lettres, Joueur joueur) {
+        return getMancheCourante().ajouterMot(lettres, joueur);
     }
 
     /**
@@ -159,8 +159,8 @@ public class Jeu {
      * @param joueur joueur qui a trouvé les lettres
      * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
      */
-    public int ajouterMotTrouve(String mot, Joueur joueur) {
-        return getMancheCourante().ajouterMotTrouve(mot, joueur);
+    public int ajouterMot(String mot, Joueur joueur) {
+        return getMancheCourante().ajouterMot(mot, joueur);
     }
 
     public HashMap<Joueur, Integer> getPoints() {

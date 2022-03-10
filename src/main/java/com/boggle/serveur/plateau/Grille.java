@@ -2,6 +2,7 @@ package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.jeu.Langue;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 /** Plateau du jeu contenant les lettres. */
@@ -53,7 +54,7 @@ public class Grille {
         return lignes;
     }
 
-    public Langue getLangueChoisi() {
+    public Langue getLangue() {
         return langueChoisi;
     }
 
@@ -140,11 +141,26 @@ public class Grille {
      * @return le mot sous forme de LinkedList<Lettre> si le mot est valide, null sinon
      */
     public Mot ajouterMot(LinkedList<Lettre> lettres) {
+        HashSet<Lettre> set = new HashSet<>(lettres);
+
         for (int i = 0; i < lettres.size() - 1; i++) {
+            set.add(lettres.get(i));
             if (!lettres.get(i).estACoteDe(lettres.get(i + 1)) || lettres.get(i).estSur(lettres.get(i + 1))) {
                 return null;
             }
         }
+
+        // Si le set n'a pas la même taille que le LinkedList, c'est qu'il y a des doublons
+        if (set.size() != lettres.size()) return null;
+
+        for (int i = 0; i < this.lignes; i++) {
+            for (int j = 0; j < this.colonnes; j++) {
+                set.remove(this.grille[i][j]);
+            }
+        }
+        // Si le set n'est pas vide, c'est qu'il y a des lettres qui ne sont pas dans la grille
+        if (set.size() != 0) return null;
+
         try {
             return new Mot(lettres);
         } catch (Exception e) {

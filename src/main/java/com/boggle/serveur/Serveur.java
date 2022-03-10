@@ -141,9 +141,9 @@ public class Serveur implements ServeurInterface {
     private void ajouterMot(NouveauMotSouris nouveauMot, Client client) {
         LinkedList<Lettre> liste = new LinkedList<>();
         for (Lettre l : nouveauMot.getLettres()) {
-            liste.add(l);
+            liste.add(jeu.getMancheCourante().getGrille().getGrille()[l.coord.x][l.coord.y]);
         }
-        int valide = jeu.ajouterMotTrouve(
+        int valide = jeu.ajouterMot(
                 liste,
                 jeu.getJoueurs().stream()
                         .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
@@ -163,7 +163,7 @@ public class Serveur implements ServeurInterface {
      * @param client le client qui a ajouté le mot
      */
     private void ajouterMot(NouveauMotClavier nouveauMot, Client client) {
-        int valide = jeu.ajouterMotTrouve(
+        int valide = jeu.ajouterMot(
                 nouveauMot.getMot(),
                 jeu.getJoueurs().stream()
                         .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
