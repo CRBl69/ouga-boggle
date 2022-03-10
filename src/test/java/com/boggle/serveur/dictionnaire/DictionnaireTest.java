@@ -12,7 +12,7 @@ import org.junit.Test;
 public class DictionnaireTest {
     @Test
     public void trouveLesMotsFrancais() {
-        Dictionnaire.genererArbre(Langue.FR);
+        Dictionnaire.generer(Langue.FR);
         assertTrue(Dictionnaire.estUnMot("chapeau"));
         assertTrue(Dictionnaire.estUnMot("cheval"));
         assertTrue(Dictionnaire.estUnMot("a"));
@@ -26,7 +26,7 @@ public class DictionnaireTest {
 
     @Test
     public void trouveLesMotsAnglais() {
-        Dictionnaire.genererArbre(Langue.EN);
+        Dictionnaire.generer(Langue.EN);
         assertTrue(Dictionnaire.estUnMot("hat"));
         assertTrue(Dictionnaire.estUnMot("hello"));
         assertFalse(Dictionnaire.estUnMot("anglais"));
@@ -35,7 +35,7 @@ public class DictionnaireTest {
 
     @Test
     public void trouveLesMotsEspagnols() {
-        Dictionnaire.genererArbre(Langue.ES);
+        Dictionnaire.generer(Langue.ES);
         assertTrue(Dictionnaire.estUnMot("senorita"));
         assertTrue(Dictionnaire.estUnMot("embicadura"));
         assertFalse(Dictionnaire.estUnMot("bonjour"));
@@ -44,7 +44,7 @@ public class DictionnaireTest {
 
     @Test
     public void trouveLesMotsAllemands() {
-        Dictionnaire.genererArbre(Langue.DE);
+        Dictionnaire.generer(Langue.DE);
         assertTrue(Dictionnaire.estUnMot("mitteilenswerter"));
         assertTrue(Dictionnaire.estUnMot("verfahrensstufe"));
         assertFalse(Dictionnaire.estUnMot("bonjour"));

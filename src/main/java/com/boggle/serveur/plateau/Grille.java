@@ -31,7 +31,7 @@ public class Grille {
             case EN -> new GenerateurLettreEN();
             case ES -> new GenerateurLettreES();
             case DE -> new GenerateurLettreDE();};
-        Dictionnaire.genererArbre(langue);
+        Dictionnaire.generer(langue);
         genGrille();
     }
 

@@ -12,7 +12,7 @@ import org.junit.Test;
 public class MotTest {
     @Test
     public void creationMotExistant() {
-        Dictionnaire.genererArbre(Langue.FR);
+        Dictionnaire.generer(Langue.FR);
         LinkedList<Lettre> lettres = new LinkedList<>();
         lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
         lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
@@ -30,7 +30,7 @@ public class MotTest {
 
     @Test
     public void creationMotNonExistant() {
-        Dictionnaire.genererArbre(Langue.FR);
+        Dictionnaire.generer(Langue.FR);
         LinkedList<Lettre> lettres = new LinkedList<>();
         lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
         lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
@@ -49,7 +49,7 @@ public class MotTest {
 
     @Test
     public void fonctionToString() {
-        Dictionnaire.genererArbre(Langue.FR);
+        Dictionnaire.generer(Langue.FR);
         LinkedList<Lettre> lettres = new LinkedList<>();
         lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
         lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
@@ -63,7 +63,7 @@ public class MotTest {
 
     @Test
     public void fonctionGetLettres() {
-        Dictionnaire.genererArbre(Langue.FR);
+        Dictionnaire.generer(Langue.FR);
         LinkedList<Lettre> lettres = new LinkedList<>();
         lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
         lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
@@ -80,7 +80,7 @@ public class MotTest {
 
     @Test
     public void fonctionGetPoints() {
-        Dictionnaire.genererArbre(Langue.FR);
+        Dictionnaire.generer(Langue.FR);
         LinkedList<Lettre> lettres = new LinkedList<>();
         lettres.add(new Lettre(new Coordonnee(0, 0), "t"));
         lettres.add(new Lettre(new Coordonnee(0, 1), "e"));
