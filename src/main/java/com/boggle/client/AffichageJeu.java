@@ -6,9 +6,14 @@ import com.boggle.serveur.messages.MotTrouve;
 import com.boggle.serveur.messages.MotVerifie;
 import com.boggle.serveur.plateau.*;
 import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.swing.*;
+import javax.swing.event.MouseInputListener;
 import javax.swing.text.DefaultCaret;
 
 /** Vue du jeu */
@@ -37,22 +42,105 @@ public class AffichageJeu extends JFrame {
     /** Vue pour la grille de lettres */
     private class VueGrille extends JPanel {
         VueCase[][] contenu;
+        static List<VueCase> selection = new ArrayList<>();
 
         /** Vue pour une lettre */
-        private class VueCase extends JButton {
-            String lettre;
+        private class VueCase extends JButton implements MouseInputListener {
+            Lettre lettre;
+            boolean selectionnee = false;
+            static boolean mouseDown = false;
+            static VueCase lastCase = null;
 
             /**
              * Constructeur.
              *
              * @param l charactere a utiliser pour cette case
              */
-            public VueCase(String l) {
-                super(l);
+            public VueCase(Lettre l) {
+                super(l.lettre);
+                setBackground(Color.WHITE);
                 lettre = l;
-
+                addMouseListener(this);
+                addMouseMotionListener(this);
                 addActionListener((e) -> champDeTexte.setText(champDeTexte.getText() + lettre));
             }
+
+            public void selectionner() {
+                selectionnee = true;
+                if (!selection.contains(this)) {
+                    SwingUtilities.invokeLater(() -> {
+                        selection.add(this);
+                        setBackground(Color.YELLOW);
+                        champDeTexte.setText(selection.stream()
+                                .map(VueCase::getLettre)
+                                .map(Lettre::toString)
+                                .collect(Collectors.joining()));
+                    });
+                }
+            }
+
+            public void deselectionner() {
+                selectionnee = false;
+                SwingUtilities.invokeLater(() -> {
+                    selection.remove(this);
+                    champDeTexte.setText(selection.stream()
+                            .map(VueCase::getLettre)
+                            .map(Lettre::toString)
+                            .collect(Collectors.joining()));
+                    setBackground(Color.WHITE);
+                });
+            }
+
+            public Lettre getLettre() {
+                return lettre;
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent arg0) {}
+
+            @Override
+            public void mouseEntered(MouseEvent arg0) {
+                if (mouseDown) {
+                    if (selectionnee) {
+                        selection
+                                .subList(selection.indexOf(this), selection.size())
+                                .forEach(VueCase::deselectionner);
+                        selection = selection.subList(0, selection.indexOf(this));
+                    }
+                    selectionner();
+                    lastCase = this;
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent arg0) {}
+
+            @Override
+            public void mousePressed(MouseEvent arg0) {
+                mouseDown = true;
+                champDeTexte.setEnabled(false);
+                selectionner();
+                lastCase = this;
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent arg0) {
+                mouseDown = false;
+
+                serveur.envoyerMotSouris(
+                        selection.stream().map(VueCase::getLettre).collect(Collectors.toList()));
+                selection.forEach(c -> c.deselectionner());
+                selection.clear();
+                champDeTexte.setText("");
+                champDeTexte.setEnabled(true);
+                champDeTexte.requestFocus();
+            }
+
+            @Override
+            public void mouseDragged(MouseEvent arg0) {}
+
+            @Override
+            public void mouseMoved(MouseEvent arg0) {}
         }
 
         /**
@@ -61,12 +149,15 @@ public class AffichageJeu extends JFrame {
          * @param lettres nouvelles lettres
          */
         public void miseAJour(String[][] lettres) {
-            setLayout(new GridLayout(lettres[0].length, lettres.length));
+            var gridLayout = new GridLayout(lettres[0].length, lettres.length);
+            gridLayout.setHgap(10);
+            gridLayout.setVgap(10);
+            setLayout(gridLayout);
             removeAll();
             contenu = new VueCase[lettres[0].length][lettres.length];
             for (int i = 0; i < lettres.length; i++) {
                 for (int j = 0; j < lettres[0].length; j++) {
-                    VueCase c = new VueCase(lettres[i][j]);
+                    VueCase c = new VueCase(new Lettre(new Coordonnee(i, j), lettres[i][j]));
                     contenu[i][j] = c;
                     add(c);
                 }
