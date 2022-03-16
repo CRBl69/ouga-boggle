@@ -2,6 +2,7 @@ package com.boggle.client;
 
 import com.boggle.serveur.jeu.ConfigurationClient;
 import com.boggle.serveur.messages.*;
+import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
 import com.boggle.util.ConnexionServeurException;
 import com.boggle.util.Logger;
@@ -11,6 +12,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 /** La classe client qui communique avec le serveur */
@@ -210,6 +212,22 @@ public class Client {
             var motObj = new NouveauMotClavier(mot, UUID.randomUUID().toString());
             motsEnVerification.put(motObj.getId(), mot);
             envoyer("motClavier " + gson.toJson(motObj));
+        }
+
+        /**
+         * Permets d'envoyer un mot au serveur.
+         *
+         * @param mot Le mot à envoyer.
+         */
+        public void envoyerMotSouris(List<Lettre> mot) {
+            var motObj = new NouveauMotSouris(
+                    mot.toArray(new Lettre[mot.size()]), UUID.randomUUID().toString());
+            String motStr = "";
+            for (var lettre : mot) {
+                motStr += lettre.lettre;
+            }
+            motsEnVerification.put(motObj.getId(), motStr);
+            envoyer("motSouris " + gson.toJson(motObj));
         }
     }
 }

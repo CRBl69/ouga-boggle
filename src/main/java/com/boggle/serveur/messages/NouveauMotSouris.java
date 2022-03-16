@@ -7,7 +7,10 @@ public class NouveauMotSouris {
     private String auteur;
     private Lettre[] lettres;
 
-    public NouveauMotSouris() {}
+    public NouveauMotSouris(Lettre[] lettres, String uuid) {
+        this.lettres = lettres;
+        this.id = uuid;
+    }
 
     public String getId() {
         return id;
