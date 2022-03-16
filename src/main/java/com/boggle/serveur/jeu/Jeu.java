@@ -20,6 +20,7 @@ public class Jeu {
     private int tailleHorizontale;
     private Langue langue;
     private ServeurInterface serveur;
+    private boolean mancheEnCours;
 
     public Jeu(
             int nombreManche,
@@ -88,8 +89,10 @@ public class Jeu {
             Thread t = new Thread() {
                 public void run() {
                     try {
+                        mancheEnCours = true;
                         Thread.sleep(dureeManche * 1000);
                         serveur.annoncerFinManche();
+                        mancheEnCours = false;
                         if (manches.size() < nombreMancheTotal) {
                             Thread.sleep(10000);
                             nouvelleManche();
@@ -165,9 +168,6 @@ public class Jeu {
 
     public HashMap<Joueur, Integer> getPoints() {
         HashMap<Joueur, Integer> pointsParJoueur = new HashMap<>();
-        for (Joueur joueur : joueurs) {
-            pointsParJoueur.put(joueur, 0);
-        }
         for (var manche : manches) {
             var points = manche.getPoints();
             for (var joueur : points.keySet()) {
@@ -183,5 +183,13 @@ public class Jeu {
 
     public HashMap<Joueur, HashSet<Mot>> getListeMots() {
         return getMancheCourante().getListeMots();
+    }
+
+    public boolean mancheEnCours() {
+        return mancheEnCours;
+    }
+
+    public int getNombreManche() {
+        return manches.size();
     }
 }
