@@ -3,7 +3,7 @@ package com.boggle.serveur.jeu;
 import com.beust.jcommander.IStringConverter;
 
 /** Liste des langues supportées. */
-public enum Langue implements IStringConverter<Langue>{
+public enum Langue implements IStringConverter<Langue> {
     FR,
     EN,
     DE,
@@ -13,7 +13,7 @@ public enum Langue implements IStringConverter<Langue>{
     public Langue convert(String value) {
         try {
             return Langue.valueOf(value);
-        } catch(IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             return null;
         }
     }
