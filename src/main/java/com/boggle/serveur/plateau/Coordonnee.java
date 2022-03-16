@@ -1,6 +1,8 @@
 package com.boggle.serveur.plateau;
 
-public class Coordonnee {
+import java.io.Serializable;
+
+public class Coordonnee implements Serializable {
     public final int x;
     public final int y;
 

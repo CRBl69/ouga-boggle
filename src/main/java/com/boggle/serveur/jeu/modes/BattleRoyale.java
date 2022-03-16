@@ -14,7 +14,7 @@ public class BattleRoyale extends Normal {
     }
 
     public void nouvelleManche() {
-        demarrerManche(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue));
+        demarrerManche(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue, this));
         if (dureeManche != 0) {
             Thread t = new Thread() {
                 public void run() {

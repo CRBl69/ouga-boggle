@@ -1,11 +1,15 @@
 package com.boggle.serveur.jeu;
 
 import com.boggle.serveur.ServeurInterface;
+import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
+import com.boggle.util.Defaults;
+
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,7 +18,6 @@ import java.util.LinkedList;
 import java.util.List;
 
 import com.boggle.serveur.Serveur;
-import com.boggle.serveur.plateau.Lettre;
 import com.google.gson.Gson;
 
 /** Fonctions relatives à la partie. */
@@ -28,6 +31,7 @@ public abstract class Jeu {
     protected Langue langue;
     protected ServeurInterface serveur;
     protected boolean mancheEnCours;
+    private boolean estEnPause = true;
 
     public Jeu(
             int nombreManche,
@@ -69,6 +73,39 @@ public abstract class Jeu {
         return !manches.isEmpty();
     }
 
+    public void removeServeur() {
+        this.serveur = null;
+    }
+
+    public void setServeur(ServeurInterface serveur) {
+        this.serveur = serveur;
+    }
+
+    public void commencerPartie() {
+        this.estEnPause = false;
+        serveur.annoncerDebutPartie();
+        if(manches.isEmpty()) {
+            nouvelleManche();
+        } else {
+            Thread threadManches = new Thread() {
+                public void run() {
+                    try {
+                        Thread.sleep(getMancheCourante().getMinuteur().tempsRestant() * 1000);
+                        serveur.annoncerFinManche();
+                        if (manches.size() < nombreMancheTotal) {
+                            Thread.sleep(10000);
+                            nouvelleManche();
+                        } else {
+                            serveur.annoncerFinPartie();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            };
+        }
+    }
+
     /**
      * Indique si le jeu est fini.
      * @return true si toutes les manches ont été jouées, false sinon
@@ -83,6 +120,14 @@ public abstract class Jeu {
     public void demarrerJeu() {
         serveur.annoncerDebutPartie();
         nouvelleManche();
+    }
+
+    /**
+     * Fini la dernière manche commencée.
+     */
+    protected void finirManche() {
+        mancheEnCours = false;
+        serveur.annoncerFinManche();
     }
 
     /**
@@ -101,14 +146,6 @@ public abstract class Jeu {
         mancheEnCours = true;
         manches.add(m);
         serveur.annoncerDebutManche();
-    }
-
-    /**
-     * Fini la dernière manche commencée.
-     */
-    protected void finirManche() {
-        mancheEnCours = false;
-        serveur.annoncerFinManche();
     }
 
     /**
@@ -242,11 +279,26 @@ public abstract class Jeu {
 
         try {
             // TODO: verifier que le dossier existe (et sinon le creer)
-            FileWriter fw = new FileWriter(Serveur.DOSSIER_SAUVEGARDES + "/" + Instant.EPOCH + ".json");
+            FileWriter fw = new FileWriter(Defaults.getDossierHistorique() + "/" + Instant.EPOCH + ".json");
             fw.write(json);
             fw.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void mettreEnPause() {
+        this.estEnPause = true;
+        getMancheCourante().getMinuteur().mettreEnPause();
+    }
+
+    public void reprendre() {
+        this.estEnPause = false;
+        Dictionnaire.generer(langue);
+        getMancheCourante().getMinuteur().reprendre();
+    }
+
+    public boolean estEnPause() {
+        return this.estEnPause;
     }
 }

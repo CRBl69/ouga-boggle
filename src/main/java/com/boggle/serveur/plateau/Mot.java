@@ -1,11 +1,13 @@
 package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
+
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Mot {
+public class Mot implements Serializable {
     private LinkedList<Lettre> lettres;
     private final long dateCreation;
     private static AtomicInteger cpt = new AtomicInteger(0);

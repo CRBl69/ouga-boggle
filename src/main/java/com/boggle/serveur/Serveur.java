@@ -6,6 +6,7 @@ import com.boggle.serveur.jeu.Joueur;
 import com.boggle.serveur.jeu.modes.*;
 import com.boggle.serveur.messages.*;
 import com.boggle.serveur.plateau.Lettre;
+import com.boggle.util.Defaults;
 import com.boggle.util.Logger;
 import com.google.gson.Gson;
 import java.io.DataInputStream;
@@ -24,8 +25,6 @@ import java.util.LinkedList;
 
 /** Gère la communication avec tous les clients. */
 public class Serveur implements ServeurInterface {
-    public static final String DOSSIER_SAUVEGARDES = "~/.local/share/ouga-boggle/saves";
-    public static final String DOSSIER_HISTORIQUE = "~/.local/share/ouga-boggle/history";
     private Logger logger = Logger.getLogger("SERVEUR");
     private ServerSocket serveur;
     private ArrayList<Client> clients = new ArrayList<>();
@@ -39,9 +38,6 @@ public class Serveur implements ServeurInterface {
     public Serveur(ConfigurationServeur c) throws IOException {
         this.configuration = c;
         this.motDePasse = c.mdp;
-/*         if(c.sauvegarde != null) {
-            recharger(c.sauvegarde);
-        } */
         serveur = new ServerSocket(c.port);
         demarerServeur();
     }
@@ -50,7 +46,8 @@ public class Serveur implements ServeurInterface {
         configurationJeu = c;
         jeu = switch (c.modeDeJeu) {
             case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
-            default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);};
+            default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+        };
         jeu.demarrerJeu();
     }
 
@@ -58,7 +55,8 @@ public class Serveur implements ServeurInterface {
         // TODO: checker que le dossier de sauvegardes existe
         ObjectOutputStream obj;
         try {
-            obj = new ObjectOutputStream(new FileOutputStream(String.format("%s/%s.ser", DOSSIER_SAUVEGARDES, Instant.EPOCH)));
+            obj = new ObjectOutputStream(new FileOutputStream(String.format("%s/%s.ser", Defaults.getDossierSauvegardes(), Instant.now())));
+            jeu.removeServeur();
             obj.writeObject(jeu);
             obj.close();
         } catch (FileNotFoundException e) {
@@ -74,6 +72,7 @@ public class Serveur implements ServeurInterface {
         try {
             obj = new ObjectInputStream(new FileInputStream(sauvegarde));
             jeu = (Jeu) obj.readObject();
+            jeu.setServeur(this);
             obj.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -210,6 +209,10 @@ public class Serveur implements ServeurInterface {
         annoncer("elimination " + nom);
     }
 
+    public void annoncerPause(String nom, boolean pause) {
+        annoncer("pause " + gson.toJson(new PauseClient(nom, pause, (int) (clients.size() / 2 - clients.stream().filter(c -> c.joueur.demandePause).count()))));
+    }
+
     /**
      * Annonce un message à tous les clients.
      *
@@ -303,6 +306,15 @@ public class Serveur implements ServeurInterface {
                                 clients.forEach(c -> {
                                     jeu.ajouterJoueur(c.joueur);
                                 });
+                                if(jeu.estEnPause()) {
+                                    annoncerDebutPartie();
+                                    if(jeu.getMancheCourante().getMinuteur().getSec() > 0) {
+                                        jeu.reprendre();
+                                        annoncerDebutManche();
+                                    } else {
+                                        jeu.reprendre();
+                                    }
+                                }
                             }
                             break;
                         case "motSouris":
@@ -327,7 +339,17 @@ public class Serveur implements ServeurInterface {
                                 });
                             }
                             break;
-                        case "continue":
+                        case "pause":
+                            Pause pause = gson.fromJson(donnees, Pause.class);
+                            client.joueur.demandePause = pause.isPause();
+                            annoncerPause(client.joueur.nom, pause.isPause());
+                            if(moitieDemandePause()) {
+                                jeu.mettreEnPause();
+                                clients.forEach(c -> c.arreter());
+                                clients.clear();
+                                sauvegarder();
+                                System.exit(0);
+                            }
                             break;
                         case "stop":
                             exit = true;
@@ -402,6 +424,10 @@ public class Serveur implements ServeurInterface {
 
     private boolean tousLesClientsSontPrets() {
         return clients.stream().allMatch(c -> c.joueur.estPret);
+    }
+
+    private boolean moitieDemandePause() {
+        return clients.stream().filter(c -> c.joueur.demandePause).count() > clients.size() / 2;
     }
 
     public void stop() {

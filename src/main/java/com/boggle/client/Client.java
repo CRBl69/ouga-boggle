@@ -99,8 +99,7 @@ public class Client {
     public void envoyerStatus(boolean status) {
         try {
             dos.writeUTF(String.format("status {\"status\": %b}", status));
-        } catch (IOException e) {
-        }
+        } catch (IOException e) {}
     }
 
     /** Envoie une configuration au serveur. */
@@ -211,6 +210,10 @@ public class Client {
                                 affichageJeu.eliminer();
                             }
                             break;
+                        case "pause":
+                            PauseClient pause = gson.fromJson(donnees, PauseClient.class);
+                            affichageJeu.ajouterPause(pause);
+                            break;
                         default:
                             logger.warn(message + " n'est pas reconnu");
                             break;
@@ -224,7 +227,7 @@ public class Client {
     }
 
     /** Classe permettant d'envoyer des messages au serveur. */
-    class Serveur {
+    public class Serveur {
         private DataOutputStream dos;
         private Logger logger = Logger.getLogger("CLIENT");
 
@@ -275,6 +278,11 @@ public class Client {
             }
             motsEnVerification.put(motObj.getId(), motStr);
             envoyer("motSouris " + gson.toJson(motObj));
+        }
+
+        public void pause(boolean pause) {
+            Pause pauseObj = new Pause(pause);
+            envoyer("pause " + gson.toJson(pauseObj));
         }
     }
 

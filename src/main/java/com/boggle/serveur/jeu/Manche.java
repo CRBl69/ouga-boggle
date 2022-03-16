@@ -3,21 +3,23 @@ package com.boggle.serveur.jeu;
 import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
+
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 
 /** utiliser pour la sauvegarde des manches */
-public class Manche {
+public class Manche implements Serializable {
     private Grille grille;
     private HashMap<Joueur, HashSet<Mot>> listeMots;
     private Minuteur minuteur;
 
-    public Manche(int tailleVerticale, int tailleHorizontale, int dureeTimer, Langue langue) {
+    public Manche(int tailleVerticale, int tailleHorizontale, int dureeTimer, Langue langue, Jeu jeu) {
         this.grille = new Grille(tailleVerticale, tailleHorizontale, langue);
         this.listeMots = new HashMap<Joueur, HashSet<Mot>>();
-        this.minuteur = new Minuteur(dureeTimer);
+        this.minuteur = new Minuteur(dureeTimer, jeu);
     }
 
     public Grille getGrille() {

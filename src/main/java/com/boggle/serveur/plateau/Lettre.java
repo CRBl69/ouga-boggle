@@ -1,7 +1,9 @@
 package com.boggle.serveur.plateau;
 
+import java.io.Serializable;
+
 /** les jetons lettres */
-public class Lettre {
+public class Lettre implements Serializable {
     public final String lettre;
     public final Coordonnee coord;
 

@@ -2,7 +2,9 @@ package com.boggle.client;
 
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
+
 import java.awt.*;
+
 import javax.swing.*;
 
 /**
@@ -10,7 +12,6 @@ import javax.swing.*;
  * des paramètres et initialisation de la configuration.
  */
 public class AffichageConfigurationServeur extends JFrame {
-
     public AffichageConfigurationServeur() {
 
         setTitle("OuGa-BoGgLe - Configuration de la partie");
