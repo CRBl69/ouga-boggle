@@ -1,13 +1,13 @@
 package com.boggle.serveur.messages;
 
 public class MotTrouve {
-    private String nom;
+    private String pseudo;
 
-    public MotTrouve(String nom) {
-        this.nom = nom;
+    public MotTrouve(String pseudo) {
+        this.pseudo = pseudo;
     }
 
-    public String getNom() {
-        return nom;
+    public String getPseudo() {
+        return pseudo;
     }
 }

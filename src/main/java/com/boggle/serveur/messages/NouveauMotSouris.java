@@ -4,7 +4,7 @@ import com.boggle.serveur.plateau.Lettre;
 
 public class NouveauMotSouris {
     private String id;
-    private String auteur;
+    private String pseudo;
     private Lettre[] lettres;
 
     public NouveauMotSouris(Lettre[] lettres, String uuid) {
@@ -20,11 +20,11 @@ public class NouveauMotSouris {
         return lettres;
     }
 
-    public void setAuteur(String auteur) {
-        this.auteur = auteur;
+    public void setPseudo(String pseudo) {
+        this.pseudo = pseudo;
     }
 
-    public String getAuteur() {
-        return auteur;
+    public String getPseudo() {
+        return pseudo;
     }
 }

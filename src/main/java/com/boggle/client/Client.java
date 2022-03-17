@@ -1,6 +1,7 @@
 package com.boggle.client;
 
 import com.boggle.serveur.jeu.ConfigurationClient;
+import com.boggle.serveur.jeu.Joueur;
 import com.boggle.serveur.messages.*;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
@@ -11,9 +12,11 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import javax.swing.SwingUtilities;
 
 /** La classe client qui communique avec le serveur */
 public class Client {
@@ -28,9 +31,11 @@ public class Client {
     private AffichageJeu affichageJeu;
     private Gson gson = new Gson();
     private HashMap<String, String> motsEnVerification = new HashMap<>();
+    private ArrayList<Joueur> joueurs = new ArrayList<>();
 
     public Client(ConfigurationClient c) throws ConnexionServeurException {
         this.config = c;
+        this.joueurs.add(new Joueur(c.pseudo));
         try {
             socket = new Socket(c.ip, c.port);
             dis = new DataInputStream(socket.getInputStream());
@@ -42,8 +47,10 @@ public class Client {
 
                 gestionnaireServeur.start();
 
-                affichageStatus = new AffichageStatus(this);
-                affichageStatus.setVisible(true);
+                if (affichageJeu == null) {
+                    affichageStatus = new AffichageStatus(this);
+                    affichageStatus.setVisible(true);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -76,8 +83,14 @@ public class Client {
         if (reponse.equals("NOPE")) return false;
 
         String[] s = reponse.split(" ");
-        nPrets = Integer.parseInt(s[1]);
-        nClients = Integer.parseInt(s[2]);
+        String donnees = reponse.substring(s[0].length() + 1);
+        PoigneeDeMain poigneeDeMain = gson.fromJson(donnees, PoigneeDeMain.class);
+        joueurs.addAll(poigneeDeMain.getJoueurs());
+
+        if (poigneeDeMain.partieDejaCommencee()) {
+            affichageJeu = new AffichageJeu(new Serveur(dos), poigneeDeMain.getContinuePartie());
+            affichageJeu.setVisible(true);
+        }
 
         return true;
     }
@@ -135,9 +148,12 @@ public class Client {
                             break;
                         case "status":
                             Status status = gson.fromJson(donnees, Status.class);
-                            if (status.getStatus()) nPrets++;
-                            else nPrets--;
-                            affichageStatus.update();
+                            joueurs.forEach(joueur -> {
+                                if (joueur.nom.equals(status.getPseudo())) {
+                                    joueur.estPret = status.getStatus();
+                                }
+                            });
+                            SwingUtilities.invokeLater(() -> affichageStatus.update());
                             break;
                         case "motVerifie":
                             MotVerifie mot = gson.fromJson(donnees, MotVerifie.class);
@@ -147,27 +163,29 @@ public class Client {
                         case "stop":
                             break;
                         case "connexion":
-                            nClients++;
-                            affichageStatus.update();
-                            break;
-                        case "deconnexion":
-                            nClients--;
+                            Connexion connexion = gson.fromJson(donnees, Connexion.class);
+                            if (connexion.estConnected()) {
+                                joueurs.add(new Joueur(connexion.getPseudo()));
+                            } else {
+                                joueurs.removeIf(j -> j.nom.equals(connexion.getPseudo()));
+                            }
                             affichageStatus.update();
                             break;
                         case "motTrouve":
                             MotTrouve motTrouve = gson.fromJson(donnees, MotTrouve.class);
-                            if (!motTrouve.getNom().equals(config.pseudo)) {
+                            if (!motTrouve.getPseudo().equals(config.pseudo)) {
                                 affichageJeu.ajouterMotTrouve(motTrouve);
                             }
                             break;
                         case "debutJeu":
+                            DebutJeu debutJeu = gson.fromJson(donnees, DebutJeu.class);
                             affichageStatus.setVisible(false);
-                            affichageJeu = new AffichageJeu(new Serveur(dos));
+                            affichageJeu = new AffichageJeu(new Serveur(dos), debutJeu);
                             break;
                         case "debutManche":
                             DebutManche debutManche = gson.fromJson(donnees, DebutManche.class);
                             affichageJeu.ajouterChat("Début de la prochaine manche.");
-                            affichageJeu.initManche(debutManche.getTableau());
+                            affichageJeu.initManche(debutManche);
                             break;
                         case "finManche":
                             FinManche finManche = gson.fromJson(donnees, FinManche.class);
@@ -229,5 +247,9 @@ public class Client {
             motsEnVerification.put(motObj.getId(), motStr);
             envoyer("motSouris " + gson.toJson(motObj));
         }
+    }
+
+    public ArrayList<Joueur> getJoueurs() {
+        return joueurs;
     }
 }

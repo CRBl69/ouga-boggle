@@ -74,10 +74,29 @@ public class Serveur implements ServeurInterface {
         String motDePasse = dis.readUTF();
 
         if (motDePasse.equals(this.motDePasse)) {
-            long nPrets = clients.stream().filter((c) -> c.pret).count();
-            int nClients = clients.size() + 1;
-            dos.writeUTF(String.format("OK %d %d", nPrets, nClients));
-            return new Client(s, dos, dis, nom);
+            if (jeu.partieEstCommencee()) {
+                if (jeu.getJoueurs().stream().anyMatch(j -> j.nom.equals(nom))) {
+                    Continue continueMessage = new Continue(
+                            lettresToString(jeu.getMancheCourante().getGrille().getGrille()),
+                            jeu.mancheEnCours(),
+                            (int) jeu.getMancheCourante().getMinuteur().tempsRestant(),
+                            new DebutJeu(configuration.nbManches),
+                            jeu.getNombreManche() - 1,
+                            jeu.getPoints().getOrDefault(new Joueur(nom), 0));
+                    dos.writeUTF(
+                            String.format("OK %s", gson.toJson(new PoigneeDeMain(clients, true, continueMessage))));
+                    return new Client(s, dos, dis, nom);
+                } else {
+                    dos.writeUTF("NOPE");
+                    dos.close();
+                    dis.close();
+                    s.close();
+                    return null;
+                }
+            } else {
+                dos.writeUTF(String.format("OK %s", gson.toJson(new PoigneeDeMain(clients, false, null))));
+                return new Client(s, dos, dis, nom);
+            }
         } else {
             dos.writeUTF("NOPE");
             dos.close();
@@ -92,11 +111,11 @@ public class Serveur implements ServeurInterface {
     }
 
     private void annoncerNouveauClient(Client c) {
-        annoncer(String.format("connexion {\"nom\": \"%s\"}", c.nom));
+        annoncer(String.format("connexion %s", gson.toJson(new Connexion(c.joueur.nom, true))));
     }
 
     private void annoncerDeconnextion(Client c) {
-        annoncer(String.format("deconnexion {\"nom\": \"%s\"}", c.nom));
+        annoncer(String.format("connexion %s", gson.toJson(new Connexion(c.joueur.nom, false))));
     }
 
     private void annoncerStatus(Status status) {
@@ -104,7 +123,7 @@ public class Serveur implements ServeurInterface {
     }
 
     public void annoncerDebutPartie() {
-        annoncer("debutJeu " + gson.toJson(new ConfigDebut(configuration.nbManches, configuration.timer)));
+        annoncer("debutJeu " + gson.toJson(new DebutJeu(configuration.nbManches)));
     }
 
     public void annoncerFinPartie() {
@@ -112,7 +131,9 @@ public class Serveur implements ServeurInterface {
     }
 
     public void annoncerDebutManche() {
-        annoncer("debutManche " + gson.toJson(new DebutManche(jeu.getGrille())));
+        annoncer("debutManche "
+                + gson.toJson(new DebutManche(
+                        jeu.getGrille(), jeu.getMancheCourante().getMinuteur().getSec())));
     }
 
     public void annoncerFinManche() {
@@ -146,12 +167,12 @@ public class Serveur implements ServeurInterface {
         int valide = jeu.ajouterMot(
                 liste,
                 jeu.getJoueurs().stream()
-                        .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
+                        .filter(j -> j.nom.equals(nouveauMot.getPseudo()))
                         .findFirst()
                         .get());
         if (valide > 0) {
             logger.info("Mot valide");
-            annoncerMotTrouve(nouveauMot.getAuteur());
+            annoncerMotTrouve(nouveauMot.getPseudo());
         } else {
             logger.info("Mot invalide");
         }
@@ -166,12 +187,12 @@ public class Serveur implements ServeurInterface {
         int valide = jeu.ajouterMot(
                 nouveauMot.getMot(),
                 jeu.getJoueurs().stream()
-                        .filter(j -> j.nom.equals(nouveauMot.getAuteur()))
+                        .filter(j -> j.nom.equals(nouveauMot.getPseudo()))
                         .findFirst()
                         .get());
         if (valide > 0) {
             logger.info("Mot valide");
-            annoncerMotTrouve(nouveauMot.getAuteur());
+            annoncerMotTrouve(nouveauMot.getPseudo());
         } else {
             logger.info("Mot invalide");
         }
@@ -201,33 +222,34 @@ public class Serveur implements ServeurInterface {
                     switch (motClef) {
                         case "message":
                             Chat chat = gson.fromJson(donnees, Chat.class);
-                            chat.setAuteur(client.nom);
+                            chat.setPseudo(client.joueur.nom);
                             annoncerMessage(chat);
                             break;
                         case "status":
                             if (jeu.partieEstCommencee()) break;
                             Status status = gson.fromJson(donnees, Status.class);
-                            status.setAuteur(client.nom);
+                            status.setPseudo(client.joueur.nom);
                             annoncerStatus(status);
 
-                            client.pret = true;
+                            client.joueur.estPret = status.getStatus();
                             if (tousLesClientsSontPrets()) {
                                 jeu.commencerPartie();
                                 clients.forEach(c -> {
-                                    Joueur j = new Joueur(c.nom);
-                                    jeu.ajouterJoueur(j);
+                                    jeu.ajouterJoueur(c.joueur);
                                 });
                             }
                             break;
                         case "motSouris":
                             NouveauMotSouris mot = gson.fromJson(donnees, NouveauMotSouris.class);
-                            mot.setAuteur(client.nom);
+                            mot.setPseudo(client.joueur.nom);
                             ajouterMot(mot, client);
                             break;
                         case "motClavier":
                             NouveauMotClavier motClavier = gson.fromJson(donnees, NouveauMotClavier.class);
-                            motClavier.setAuteur(client.nom);
+                            motClavier.setPseudo(client.joueur.nom);
                             ajouterMot(motClavier, client);
+                            break;
+                        case "continue":
                             break;
                         case "stop":
                             exit = true;
@@ -237,14 +259,14 @@ public class Serveur implements ServeurInterface {
                             break;
                     }
                     if (exit) {
-                        logger.warn("Client \"" + client.nom + "\" s'est déconnecté");
+                        logger.warn("Client \"" + client.joueur.nom + "\" s'est déconnecté");
                         annoncerDeconnextion(client);
                         client.arreter();
                         clients.remove(client);
                         break;
                     }
                 } catch (IOException e) {
-                    logger.warn("Perte de connexion du client \"" + client.nom + "\"");
+                    logger.warn("Perte de connexion du client \"" + client.joueur.nom + "\"");
                     annoncerDeconnextion(client);
                     clients.remove(client);
                     break;
@@ -259,18 +281,17 @@ public class Serveur implements ServeurInterface {
      * Elle stocke son socket, son output stream, son input stream, son status
      * et son pseudo.
      */
-    class Client {
+    public class Client {
         public final DataOutputStream dos;
         public final DataInputStream dis;
         public final Socket s;
-        public final String nom;
-        public boolean pret;
+        public final Joueur joueur;
 
         private Client(Socket s, DataOutputStream dos, DataInputStream dis, String nom) {
             this.s = s;
             this.dos = dos;
             this.dis = dis;
-            this.nom = nom;
+            this.joueur = new Joueur(nom);
         }
 
         /**
@@ -302,7 +323,7 @@ public class Serveur implements ServeurInterface {
     }
 
     private boolean tousLesClientsSontPrets() {
-        return clients.stream().allMatch(c -> c.pret);
+        return clients.stream().allMatch(c -> c.joueur.estPret);
     }
 
     public void stop() {
@@ -312,5 +333,15 @@ public class Serveur implements ServeurInterface {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static String[][] lettresToString(Lettre[][] lettres) {
+        String[][] lettresString = new String[lettres.length][lettres[0].length];
+        for (int i = 0; i < lettres.length; i++) {
+            for (int j = 0; j < lettres[0].length; j++) {
+                lettresString[i][j] = lettres[i][j].toString();
+            }
+        }
+        return lettresString;
     }
 }

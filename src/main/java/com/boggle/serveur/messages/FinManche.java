@@ -7,12 +7,12 @@ public class FinManche {
     private Joueur[] joueurs;
 
     public static class Joueur {
-        private String nom;
+        private String pseudo;
         private int points;
         private Mot[] mots;
 
         public String getNom() {
-            return nom;
+            return pseudo;
         }
 
         public int getPoints() {
@@ -49,7 +49,7 @@ public class FinManche {
         var mots = jeu.getListeMots();
         for (var joueur : jeu.getJoueurs()) {
             Joueur j = new Joueur();
-            j.nom = joueur.nom;
+            j.pseudo = joueur.nom;
             j.points = points.get(joueur);
             var liste = mots.get(joueur);
             j.mots = new Mot[liste != null ? liste.size() : 0];
@@ -75,7 +75,7 @@ public class FinManche {
         StringBuilder sb = new StringBuilder();
         sb.append("Fin manche :\n");
         for (var joueur : joueurs) {
-            sb.append(joueur.nom).append(" : ").append(joueur.points).append(" points\n");
+            sb.append(joueur.pseudo).append(" : ").append(joueur.points).append(" points\n");
             for (var mot : joueur.mots) {
                 sb.append("\t").append(mot.mot).append(" : ").append(mot.points).append(" points\n");
                 for (var coord : mot.coordonnees) {

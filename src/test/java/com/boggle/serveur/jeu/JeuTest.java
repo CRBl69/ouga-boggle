@@ -95,7 +95,7 @@ public class JeuTest {
 
         jeu.commencerPartie();
 
-        assertEquals(2, jeu.getJoueurGagnant().size());
+        assertEquals(0, jeu.getJoueurGagnant().size());
 
         var grille = jeu.getMancheCourante().getGrille().getGrille();
 

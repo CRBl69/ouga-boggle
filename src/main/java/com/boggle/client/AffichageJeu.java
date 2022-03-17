@@ -1,169 +1,34 @@
 package com.boggle.client;
 
 import com.boggle.client.Client.Serveur;
+import com.boggle.client.affichage.*;
+import com.boggle.serveur.messages.Continue;
+import com.boggle.serveur.messages.DebutJeu;
+import com.boggle.serveur.messages.DebutManche;
 import com.boggle.serveur.messages.FinManche;
 import com.boggle.serveur.messages.MotTrouve;
 import com.boggle.serveur.messages.MotVerifie;
 import com.boggle.serveur.plateau.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import javax.swing.*;
-import javax.swing.event.MouseInputListener;
 import javax.swing.text.DefaultCaret;
 
 /** Vue du jeu */
 public class AffichageJeu extends JFrame {
-    private ChampDeTexte champDeTexte = new ChampDeTexte();
-    private VueGrille grille;
-    public VueMots mots = new VueMots();
     private Serveur serveur;
+    private DebutJeu debutJeu;
+    private int nbManchesEcoulees;
+    private JPanel infoPanel = new JPanel(new GridLayout(1, 2));
+
+    private VueEntreeTexte entreeTexte = new VueEntreeTexte(mot -> serveur.envoyerMotClavier(mot));
+    private VueGrille grille = new VueGrille(entreeTexte, mot -> serveur.envoyerMotSouris(mot));
+    private VueMinuteur minuteur = new VueMinuteur();
+    private VueInfos infos;
+    public VueChat chat = new VueChat();
 
     Consumer<Mot> action;
-
-    private class ChampDeTexte extends JTextField {
-        public ChampDeTexte() {
-            super();
-
-            addActionListener((ac) -> {
-                String mot = ac.getActionCommand();
-
-                if (mot.length() > 0) {
-                    serveur.envoyerMotClavier(mot);
-                }
-            });
-        }
-    }
-
-    /** Vue pour la grille de lettres */
-    private class VueGrille extends JPanel {
-        VueCase[][] contenu;
-        static List<VueCase> selection = new ArrayList<>();
-
-        /** Vue pour une lettre */
-        private class VueCase extends JButton implements MouseInputListener {
-            Lettre lettre;
-            boolean selectionnee = false;
-            static boolean mouseDown = false;
-            static VueCase lastCase = null;
-
-            /**
-             * Constructeur.
-             *
-             * @param l charactere a utiliser pour cette case
-             */
-            public VueCase(Lettre l) {
-                super(l.lettre);
-                setBackground(Color.WHITE);
-                lettre = l;
-                addMouseListener(this);
-                addMouseMotionListener(this);
-                addActionListener((e) -> champDeTexte.setText(champDeTexte.getText() + lettre));
-            }
-
-            public void selectionner() {
-                selectionnee = true;
-                if (!selection.contains(this)) {
-                    SwingUtilities.invokeLater(() -> {
-                        selection.add(this);
-                        setBackground(Color.YELLOW);
-                        champDeTexte.setText(selection.stream()
-                                .map(VueCase::getLettre)
-                                .map(Lettre::toString)
-                                .collect(Collectors.joining()));
-                    });
-                }
-            }
-
-            public void deselectionner() {
-                selectionnee = false;
-                SwingUtilities.invokeLater(() -> {
-                    selection.remove(this);
-                    champDeTexte.setText(selection.stream()
-                            .map(VueCase::getLettre)
-                            .map(Lettre::toString)
-                            .collect(Collectors.joining()));
-                    setBackground(Color.WHITE);
-                });
-            }
-
-            public Lettre getLettre() {
-                return lettre;
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent arg0) {}
-
-            @Override
-            public void mouseEntered(MouseEvent arg0) {
-                if (mouseDown) {
-                    if (selectionnee) {
-                        selection
-                                .subList(selection.indexOf(this), selection.size())
-                                .forEach(VueCase::deselectionner);
-                        selection = selection.subList(0, selection.indexOf(this));
-                    }
-                    selectionner();
-                    lastCase = this;
-                }
-            }
-
-            @Override
-            public void mouseExited(MouseEvent arg0) {}
-
-            @Override
-            public void mousePressed(MouseEvent arg0) {
-                mouseDown = true;
-                champDeTexte.setEnabled(false);
-                selectionner();
-                lastCase = this;
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent arg0) {
-                mouseDown = false;
-
-                serveur.envoyerMotSouris(
-                        selection.stream().map(VueCase::getLettre).collect(Collectors.toList()));
-                selection.forEach(c -> c.deselectionner());
-                selection.clear();
-                champDeTexte.setText("");
-                champDeTexte.setEnabled(true);
-                champDeTexte.requestFocus();
-            }
-
-            @Override
-            public void mouseDragged(MouseEvent arg0) {}
-
-            @Override
-            public void mouseMoved(MouseEvent arg0) {}
-        }
-
-        /**
-         * Mets à jour la grille avec les nouvelles lettres.
-         *
-         * @param lettres nouvelles lettres
-         */
-        public void miseAJour(String[][] lettres) {
-            var gridLayout = new GridLayout(lettres[0].length, lettres.length);
-            gridLayout.setHgap(10);
-            gridLayout.setVgap(10);
-            setLayout(gridLayout);
-            removeAll();
-            contenu = new VueCase[lettres[0].length][lettres.length];
-            for (int i = 0; i < lettres.length; i++) {
-                for (int j = 0; j < lettres[0].length; j++) {
-                    VueCase c = new VueCase(new Lettre(new Coordonnee(i, j), lettres[i][j]));
-                    contenu[i][j] = c;
-                    add(c);
-                }
-            }
-        }
-    }
 
     /** Vue pour les mots trouves */
     class VueMots extends JPanel {
@@ -203,38 +68,78 @@ public class AffichageJeu extends JFrame {
     /**
      * Constructeur.
      *
-     * @param lettres la grille de lettres a utiliser j
+     * @param serveur le serveur avec lequel communiquer
+     * @param debutJeu les informations de début de jeu
      */
-    public AffichageJeu(Serveur serveur) {
+    public AffichageJeu(Serveur serveur, DebutJeu debutJeu) {
         super();
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         this.serveur = serveur;
+
+        this.debutJeu = debutJeu;
+
+        this.infos = new VueInfos(this.debutJeu.getNbManches());
 
         JPanel panel = new JPanel(new GridBagLayout());
         add(panel);
 
         GridBagConstraints gbc = new GridBagConstraints();
 
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.gridx = 0;
+        gbc.fill = GridBagConstraints.NONE;
         gbc.insets = new Insets(10, 10, 10, 10);
 
-        grille = new VueGrille();
-
-        champDeTexte.addActionListener((a) -> champDeTexte.setText(""));
-
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridheight = 4;
         panel.add(grille, gbc);
-        panel.add(champDeTexte, gbc);
+
+        entreeTexte.addActionListener((a) -> entreeTexte.setText(""));
+
+        gbc.gridy = 4;
+        gbc.gridheight = 1;
+        panel.add(entreeTexte, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 0;
-        gbc.gridheight = 2;
+        gbc.gridheight = 4;
+        panel.add(chat, gbc);
 
-        panel.add(mots, gbc);
+        infoPanel.add(minuteur);
+        infoPanel.add(infos);
+
+        gbc.gridy = 4;
+        gbc.gridheight = 1;
+        panel.add(infoPanel, gbc);
 
         pack();
         setVisible(true);
+    }
+
+    /**
+     * Constructeur pour une partie en cours.
+     * @param serveur le serveur avec lequel communiquer
+     * @param continuePartie les informations pour continuer la partie
+     */
+    public AffichageJeu(Serveur serveur, Continue continuePartie) {
+        this(serveur, continuePartie.getDebutJeu());
+
+        SwingUtilities.invokeLater(() -> {
+            infoPanel.remove(infos);
+            infos = new VueInfos(continuePartie.getDebutJeu().getNbManches(), continuePartie.getNombreManchesJouees());
+            infos.updateStatus(continuePartie.partieEstdemaree());
+            infos.ajouterPoints(continuePartie.getPoints());
+            for (int i = 0; i <= continuePartie.getNombreManchesJouees(); i++) {
+                infos.updateManches();
+            }
+            infoPanel.add(infos);
+        });
+
+        DebutManche dm = new DebutManche(continuePartie.getTableau(), continuePartie.getTempsRestant());
+        initManche(dm);
+        activerInterface(continuePartie.partieEstdemaree());
+        nbManchesEcoulees = continuePartie.getNombreManchesJouees();
+        infos.ajouterPoints(continuePartie.getPoints());
     }
 
     /**
@@ -242,10 +147,14 @@ public class AffichageJeu extends JFrame {
      *
      * @param lettres nouvelles lettres
      */
-    public void initManche(String[][] lettres) {
-        grille.miseAJour(lettres);
+    public void initManche(DebutManche dm) {
+        grille.miseAJour(dm.getTableau());
+        this.activerInterface(true);
+        infos.updateStatus(true);
+        infos.updateManches();
+        entreeTexte.grabFocus();
         grille.updateUI();
-
+        minuteur.start(dm.getLongueurManche());
         pack();
     }
 
@@ -264,7 +173,7 @@ public class AffichageJeu extends JFrame {
      * @param mot le mot a ajouter
      */
     public void ajouterChat(String message) {
-        mots.ajouterChat(message);
+        chat.ajouterChat(message);
     }
 
     /**
@@ -274,9 +183,12 @@ public class AffichageJeu extends JFrame {
      */
     public void ajouterMotVerifie(MotVerifie mot) {
         if (mot.isAccepte()) {
-            mots.ajouterChat(String.format("Vous avez trouvé \"%s\" (+%dpts).", mot.getMot(), mot.getPoints()));
+            infos.ajouterPoints(mot.getPoints());
+            chat.ajouterChat(String.format("Vous avez trouvé \"%s\" (+%dpts).", mot.getMot(), mot.getPoints()));
+            jouerSonDeVictoire();
         } else {
-            mots.ajouterChat(String.format("Le mot %s n'est pas valide.", mot.getMot()));
+            chat.ajouterChat(String.format("Le mot %s n'est pas valide.", mot.getMot()));
+            jouerSonDeDefaite();
         }
     }
 
@@ -286,7 +198,12 @@ public class AffichageJeu extends JFrame {
      * @param mot le mot trouvé
      */
     public void ajouterMotTrouve(MotTrouve mot) {
-        mots.ajouterChat(String.format("%s a trouvé un mot", mot.getNom()));
+        chat.ajouterChat(String.format("%s a trouvé un mot", mot.getPseudo()));
+    }
+
+    public void activerInterface(boolean activer) {
+        grille.activer(activer);
+        entreeTexte.activer(activer);
     }
 
     /**
@@ -295,9 +212,33 @@ public class AffichageJeu extends JFrame {
      * @param finManche les informations de fin de manche
      */
     public void finManche(FinManche finManche) {
+        this.activerInterface(false);
+        infos.updateStatus(false);
         var joueurs = Arrays.asList(finManche.getJoueurs());
         joueurs.sort((j1, j2) -> j1.getPoints() - j2.getPoints());
         joueurs.forEach(j -> ajouterChat(String.format("%s a %d points.", j.getNom(), j.getPoints())));
-        ajouterChat("Manche finie, la prochaine manche commence dans 10 secondes.");
+        nbManchesEcoulees++;
+        if (nbManchesEcoulees == debutJeu.getNbManches()) {
+            ajouterChat("Fin de la partie. Victoire de "
+                    + joueurs.get(joueurs.size() - 1).getNom() + ".");
+        } else {
+            ajouterChat("Manche finie, la prochaine manche commence dans 10 secondes.");
+        }
+    }
+
+    /*
+     * FIXME: faire marcher le son.
+     *
+     * Temps passśe sur ce problème : 2h30.
+     *
+     * Vous êtes priées de mettre à jour le compteur de temps
+     * lorsque vous perdez votre temps sur ce problème.
+     */
+    private void jouerSonDeDefaite() {
+        // Util.playSound("defaite.mp3");
+    }
+
+    private void jouerSonDeVictoire() {
+        // Util.playSound("victoire.mp3");
     }
 }
