@@ -57,7 +57,7 @@ public class App {
                 if (argsMain.gui.equals("client")) {
                     new AffichageConfigurationClient().setVisible(true);
                     return;
-                } else if (argsMain.gui.equals("client")) {
+                } else if (argsMain.gui.equals("serveur")) {
                     new AffichageConfigurationServeur().setVisible(true);
                     return;
                 }
