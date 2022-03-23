@@ -34,7 +34,7 @@ public class JeuTest {
     public void creationDeJeu() {
         var jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
 
-        jeu.commencerPartie();
+        jeu.demarrerJeu();
 
         assertEquals(4, jeu.getGrille().getColonnes());
         assertEquals(4, jeu.getGrille().getLignes());
@@ -65,7 +65,7 @@ public class JeuTest {
         Joueur joueur = new Joueur("Bogdan");
         jeu.ajouterJoueur(joueur);
 
-        jeu.commencerPartie();
+        jeu.demarrerJeu();
 
         var grille = jeu.getMancheCourante().getGrille().getGrille();
 
@@ -93,7 +93,7 @@ public class JeuTest {
         jeu.ajouterJoueur(joueur1);
         jeu.ajouterJoueur(joueur2);
 
-        jeu.commencerPartie();
+        jeu.demarrerJeu();
 
         assertEquals(0, jeu.getJoueurGagnant().size());
 

@@ -3,6 +3,7 @@ package com.boggle.serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Jeu;
 import com.boggle.serveur.jeu.Joueur;
+import com.boggle.serveur.jeu.modes.*;
 import com.boggle.serveur.messages.*;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.util.Logger;
@@ -29,7 +30,9 @@ public class Serveur implements ServeurInterface {
         this.configuration = c;
         this.motDePasse = c.mdp;
         serveur = new ServerSocket(c.port);
-        jeu = new Jeu(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+        jeu = switch (c.modeDeJeu) {
+            default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+        };
         demarerServeur();
     }
 
@@ -74,7 +77,7 @@ public class Serveur implements ServeurInterface {
         String motDePasse = dis.readUTF();
 
         if (motDePasse.equals(this.motDePasse)) {
-            if (jeu.partieEstCommencee()) {
+            if (jeu.estCommence()) {
                 if (jeu.getJoueurs().stream().anyMatch(j -> j.nom.equals(nom))) {
                     Continue continueMessage = new Continue(
                             lettresToString(jeu.getMancheCourante().getGrille().getGrille()),
@@ -226,14 +229,14 @@ public class Serveur implements ServeurInterface {
                             annoncerMessage(chat);
                             break;
                         case "status":
-                            if (jeu.partieEstCommencee()) break;
+                            if (jeu.estCommence()) break;
                             Status status = gson.fromJson(donnees, Status.class);
                             status.setPseudo(client.joueur.nom);
                             annoncerStatus(status);
 
                             client.joueur.estPret = status.getStatus();
                             if (tousLesClientsSontPrets()) {
-                                jeu.commencerPartie();
+                                jeu.demarrerJeu();
                                 clients.forEach(c -> {
                                     jeu.ajouterJoueur(c.joueur);
                                 });
