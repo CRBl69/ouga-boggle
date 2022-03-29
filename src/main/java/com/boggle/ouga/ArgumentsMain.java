@@ -5,7 +5,7 @@ import com.beust.jcommander.Parameter;
 public class ArgumentsMain {
     @Parameter(
             names = {"--gui", "-g"},
-            description = "Mot de passe")
+            description = "gui")
     String gui;
 
     @Parameter(names = {"--port", "-p"})

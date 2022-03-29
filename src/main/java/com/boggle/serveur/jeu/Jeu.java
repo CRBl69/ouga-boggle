@@ -83,6 +83,7 @@ public abstract class Jeu {
      */
     protected void finirJeu() {
         serveur.annoncerFinPartie();
+        serveur.finirJeu();
     }
 
     /**

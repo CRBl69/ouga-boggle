@@ -9,8 +9,6 @@ import com.boggle.client.Client;
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationClient;
 import com.boggle.serveur.jeu.ConfigurationServeur;
-import com.boggle.serveur.jeu.Jeu;
-import com.boggle.serveur.jeu.Langue;
 import com.boggle.util.ConnexionServeurException;
 import com.boggle.util.Logger;
 import com.boggle.util.Util;
@@ -49,8 +47,8 @@ public class App {
         ArgumentsServeur argsServeur = new ArgumentsServeur();
         var jc = JCommander.newBuilder()
                 .addObject(argsMain)
-                .addCommand("serveur", argsServeur)
                 .addCommand("client", argsClient)
+                .addCommand("serveur", argsServeur)
                 .build();
         try {
             jc.parse(args);
@@ -71,22 +69,17 @@ public class App {
                 } catch (ConnexionServeurException e) {
                     logger.error("Impossible de se connecter au serveur.");
                 }
-            } else {
+            } else if (jc.getParsedCommand().equals("serveur")) {
                 ConfigurationServeur configServeur = new ConfigurationServeur(
-                        argsMain.getPort(),
-                        argsServeur.getNbJoueursMax(),
-                        argsServeur.getNbManches(),
-                        argsServeur.getTimer(),
-                        argsServeur.getTailleGrilleH(),
-                        argsServeur.getTailleGrilleV(),
-                        argsServeur.getLangue(),
-                        argsMain.getMotDePasse(),
-                        argsServeur.getModeDeJeu());
+                        argsMain.getPort(), argsMain.getMotDePasse(), argsServeur.getJoueursMax());
                 try {
                     new Serveur(configServeur);
                 } catch (IOException e) {
                     logger.error("Impossible de créer un serveur.");
                 }
+            } else {
+                afficheHelp(jc);
+                System.exit(1);
             }
         } catch (ParameterException e) {
             afficheHelp(jc);
@@ -121,65 +114,11 @@ class ArgumentsClient {
 
 class ArgumentsServeur {
     @Parameter(
-            names = {"--nombre-manche", "-n"},
-            description = "Nombre de manche de la partie")
-    private int nbManche = 3;
-
-    @Parameter(
-            names = {"--minuteur", "-t"},
-            description = "Le temps du minuteur en secondes")
-    private int timer = 60;
-
-    @Parameter(
-            names = {"--taille-grille-horizontale", "-h"},
-            description = "Dimension horizontale de la grille")
-    private int tailleGrilleH = 4;
-
-    @Parameter(
-            names = {"--taille-grille-verticale", "-v"},
-            description = "Dimension verticale de la grille")
-    private int tailleGrilleV = 4;
-
-    @Parameter(
-            names = {"--langue", "-l"},
-            converter = Langue.class)
-    private Langue langue = Langue.FR;
-
-    @Parameter(
             names = {"--joueurs-max", "-j"},
             description = "Nombre maximal de joueurs")
-    private int nbJoueursMax = 10;
+    private int joueursMax = 10;
 
-    @Parameter(
-            names = {"--mode", "-m"},
-            description = "Le mode de jeu.")
-    private Jeu.Modes modeDeJeu = Jeu.Modes.NORMAL;
-
-    public int getNbManches() {
-        return nbManche;
-    }
-
-    public int getNbJoueursMax() {
-        return nbJoueursMax;
-    }
-
-    public int getTimer() {
-        return timer;
-    }
-
-    public int getTailleGrilleH() {
-        return tailleGrilleH;
-    }
-
-    public int getTailleGrilleV() {
-        return tailleGrilleV;
-    }
-
-    public Langue getLangue() {
-        return langue;
-    }
-
-    public Jeu.Modes getModeDeJeu() {
-        return modeDeJeu;
+    public int getJoueursMax() {
+        return joueursMax;
     }
 }

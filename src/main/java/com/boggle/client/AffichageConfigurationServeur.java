@@ -2,8 +2,6 @@ package com.boggle.client;
 
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
-import com.boggle.serveur.jeu.Jeu.Modes;
-import com.boggle.serveur.jeu.Langue;
 import java.awt.*;
 import javax.swing.*;
 
@@ -22,16 +20,12 @@ public class AffichageConfigurationServeur extends JFrame {
 
         String[][] labels = {
             {"Port: ", "8080"},
-            {"Nombre de joueurs: ", "10"},
-            {"Nombre de manches: ", "3"},
-            {"Durée du timer en secondes: ", "60"},
-            {"Largeur de la grille: ", "4"},
-            {"Hauteur de la grille: ", "4"},
             {"Mot de passe: ", ""},
+            {"Nombre de joueurs: ", "10"},
         };
         int paires = labels.length;
 
-        JPanel config = new JPanel(new GridLayout(8, 1));
+        JPanel config = new JPanel(new GridLayout(3, 1));
         for (int i = 0; i < paires; i++) {
             JPanel groupe = new JPanel();
             JLabel label = new JLabel(labels[i][0], JLabel.TRAILING);
@@ -42,60 +36,17 @@ public class AffichageConfigurationServeur extends JFrame {
             config.add(groupe);
         }
 
-        JPanel langueGroupe = new JPanel();
-        JLabel langueLabel = new JLabel("Langue :");
-        JComboBox<String> langueComboBox = new JComboBox<String>();
-        langueLabel.setLabelFor(langueComboBox);
-        langueComboBox.addItem("français");
-        langueComboBox.addItem("anglais");
-        langueComboBox.addItem("allemand");
-        langueComboBox.addItem("espagnol");
-        langueGroupe.add(langueLabel);
-        langueGroupe.add(langueComboBox);
-
-        config.add(langueGroupe);
-
-        JPanel modeGroupe = new JPanel();
-        JLabel modeLabel = new JLabel("Mode de jeu :");
-        JComboBox<String> modeComboBox = new JComboBox<String>();
-        modeLabel.setLabelFor(modeComboBox);
-        modeComboBox.addItem("Normal");
-        modeComboBox.addItem("Battle Royale");
-        modeGroupe.add(modeLabel);
-        modeGroupe.add(modeComboBox);
-
-        config.add(modeGroupe);
-
         add(config);
 
         JButton go = new JButton("Lancer serveur");
         add(go, BorderLayout.SOUTH);
 
         go.addActionListener(e -> {
-            var langue =
-                    switch (langueComboBox.getSelectedItem().toString()) {
-                        case "français" -> Langue.FR;
-                        case "anglais" -> Langue.EN;
-                        case "allemand" -> Langue.DE;
-                        default -> Langue.ES;
-                    };
-            Modes modeDeJeu =
-                    switch (modeComboBox.getSelectedItem().toString()) {
-                        case "Battle Royale" -> Modes.BATTLE_ROYALE;
-                        default -> Modes.NORMAL;
-                    };
-
             try {
                 ConfigurationServeur c = new ConfigurationServeur(
                         Integer.parseInt(((JTextField) ((JPanel) config.getComponent(0)).getComponent(1)).getText()),
-                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(1)).getComponent(1)).getText()),
-                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(2)).getComponent(1)).getText()),
-                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(3)).getComponent(1)).getText()),
-                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(4)).getComponent(1)).getText()),
-                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(5)).getComponent(1)).getText()),
-                        langue,
-                        ((JTextField) ((JPanel) config.getComponent(6)).getComponent(1)).getText(),
-                        modeDeJeu);
+                        ((JTextField) ((JPanel) config.getComponent(1)).getComponent(1)).getText(),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(2)).getComponent(1)).getText()));
                 setVisible(false);
                 dispose();
                 try {

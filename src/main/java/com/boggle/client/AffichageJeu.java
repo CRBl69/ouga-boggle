@@ -23,14 +23,16 @@ public class AffichageJeu extends JFrame {
     private int nbManchesEcoulees;
     private JPanel infoPanel = new JPanel(new GridLayout(1, 2));
     private boolean elimine = false;
+    private Client client;
 
-    private VueEntreeTexte entreeTexte = new VueEntreeTexte(mot -> serveur.envoyerMotClavier(mot));
+    private VueEntreeTexte entreeTexte = new VueEntreeTexte(this);
     private VueGrille grille = new VueGrille(entreeTexte, mot -> serveur.envoyerMotSouris(mot));
     private VueMinuteur minuteur = new VueMinuteur();
     private VueInfos infos;
     public VueChat chat = new VueChat();
 
     Consumer<Mot> action;
+    private boolean jeuFini = false;
 
     /**
      * Constructeur.
@@ -38,8 +40,9 @@ public class AffichageJeu extends JFrame {
      * @param serveur le serveur avec lequel communiquer
      * @param debutJeu les informations de début de jeu
      */
-    public AffichageJeu(Serveur serveur, DebutJeu debutJeu) {
+    public AffichageJeu(Serveur serveur, DebutJeu debutJeu, Client client) {
         super();
+        this.client = client;
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         this.serveur = serveur;
@@ -88,8 +91,8 @@ public class AffichageJeu extends JFrame {
      * @param serveur le serveur avec lequel communiquer
      * @param continuePartie les informations pour continuer la partie
      */
-    public AffichageJeu(Serveur serveur, Continue continuePartie) {
-        this(serveur, continuePartie.getDebutJeu());
+    public AffichageJeu(Serveur serveur, Continue continuePartie, Client client) {
+        this(serveur, continuePartie.getDebutJeu(), client);
 
         SwingUtilities.invokeLater(() -> {
             infoPanel.remove(infos);
@@ -229,10 +232,31 @@ public class AffichageJeu extends JFrame {
         for (var j : finJeu.getGagnants()) {
             gagnants += j.nom + ", ";
         }
-        gagnants = gagnants.substring(0, gagnants.length() - 2);
+        if (gagnants.equals("")) {
+            gagnants = "personne";
+        } else {
+            gagnants = gagnants.substring(0, gagnants.length() - 2);
+        }
         infos.updateStatus(Status.FIN, elimine);
         minuteur.fin();
         ajouterChat("Fin de la partie. Victoire de " + gagnants + ".");
+        ajouterChat("Tapez \"/lobby\" pour revenir au lobby.");
+        this.jeuFini = true;
+        this.entreeTexte.activer(true);
+    }
+
+    public void envoyerMotClavier(String mot) {
+        serveur.envoyerMotClavier(mot);
+    }
+
+    public void lobby() {
+        if (this.jeuFini) {
+            client.lobby();
+        }
+    }
+
+    public boolean jeuEstFini() {
+        return this.jeuFini;
     }
 
     public void setMotsATrouver(int nombreMots) {

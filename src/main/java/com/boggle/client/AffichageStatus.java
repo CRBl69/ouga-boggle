@@ -1,5 +1,8 @@
 package com.boggle.client;
 
+import com.boggle.serveur.jeu.Jeu.Modes;
+import com.boggle.serveur.jeu.Langue;
+import com.boggle.serveur.messages.ConfigurationJeu;
 import java.awt.*;
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
@@ -12,14 +15,95 @@ public class AffichageStatus extends JFrame {
     private JButton bouton;
     private JLabel nPrets = new JLabel();
     private JLabel nJoueurs = new JLabel();
+    private JLabel configValidee = new JLabel();
     private JTextPane joueurs = new JTextPane();
     private Client client;
+    private boolean configValideeState = false;
 
     public AffichageStatus(Client c) {
         client = c;
 
-        setSize(300, 300);
+        setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
+
+        String[][] labels = {
+            {"Nombre de manches", "3"},
+            {"Durée du timer en secondes: ", "60"},
+            {"Largeur de la grille: ", "4"},
+            {"Hauteur de la grille: ", "4"},
+        };
+        int paires = labels.length;
+
+        JPanel config = new JPanel(new GridLayout(3, 1));
+        for (int i = 0; i < paires; i++) {
+            JPanel groupe = new JPanel();
+            JLabel label = new JLabel(labels[i][0], JLabel.TRAILING);
+            JTextField textField = new JTextField(labels[i][1], 5);
+            label.setLabelFor(textField);
+            groupe.add(label);
+            groupe.add(textField);
+            config.add(groupe);
+        }
+
+        JPanel langueGroupe = new JPanel();
+        JLabel langueLabel = new JLabel("Langue :");
+        JComboBox<String> langueComboBox = new JComboBox<String>();
+        langueLabel.setLabelFor(langueComboBox);
+        langueComboBox.addItem("français");
+        langueComboBox.addItem("anglais");
+        langueComboBox.addItem("allemand");
+        langueComboBox.addItem("espagnol");
+        langueGroupe.add(langueLabel);
+        langueGroupe.add(langueComboBox);
+
+        config.add(langueGroupe);
+
+        JPanel modeGroupe = new JPanel();
+        JLabel modeLabel = new JLabel("Mode de jeu :");
+        JComboBox<String> modeComboBox = new JComboBox<String>();
+        modeLabel.setLabelFor(modeComboBox);
+        modeComboBox.addItem("Normal");
+        modeComboBox.addItem("Battle Royale");
+        modeGroupe.add(modeLabel);
+        modeGroupe.add(modeComboBox);
+
+        config.add(modeGroupe);
+
+        JButton buttonSettings = new JButton("Valider");
+        buttonSettings.addActionListener(a -> {
+            var langue =
+                    switch (langueComboBox.getSelectedItem().toString()) {
+                        case "français" -> Langue.FR;
+                        case "anglais" -> Langue.EN;
+                        case "allemand" -> Langue.DE;
+                        default -> Langue.ES;
+                    };
+            Modes modeDeJeu =
+                    switch (modeComboBox.getSelectedItem().toString()) {
+                        case "Battle Royale" -> Modes.BATTLE_ROYALE;
+                        default -> Modes.NORMAL;
+                    };
+            try {
+
+                ConfigurationJeu configuration = new ConfigurationJeu(
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(0)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(1)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(2)).getComponent(1)).getText()),
+                        Integer.parseInt(((JTextField) ((JPanel) config.getComponent(3)).getComponent(1)).getText()),
+                        langue,
+                        modeDeJeu);
+                c.envoyerConfiguration(configuration);
+                configValideeState = true;
+            } catch (Exception ex) {
+                System.out.println("invalide");
+            }
+            update();
+        });
+        var configContainer = new JPanel();
+        configContainer.setLayout(new BorderLayout());
+        configContainer.add(config, BorderLayout.CENTER);
+        configContainer.add(buttonSettings, BorderLayout.SOUTH);
+        configContainer.add(configValidee, BorderLayout.NORTH);
 
         bouton = new JButton("PRET");
 
@@ -38,20 +122,31 @@ public class AffichageStatus extends JFrame {
         scroll.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scroll.setBorder(null);
 
+        JPanel center = new JPanel(new GridLayout(1, 2));
+        if (client.getJoueurs().size() == 1) {
+            center.add(configContainer);
+        }
+        center.add(scroll);
         add(infoPanel, BorderLayout.NORTH);
-        add(scroll, BorderLayout.CENTER);
+        add(center, BorderLayout.CENTER);
         add(bouton, BorderLayout.SOUTH);
         update();
     }
 
     public void update() {
         nPrets.setText(String.format(
-                "Prets: %d", client.getJoueurs().stream().filter(c -> c.estPret).count()));
-        nJoueurs.setText(String.format("Connectes: %d", client.getJoueurs().size()));
+                "Prêts: %d", client.getJoueurs().stream().filter(c -> c.estPret).count()));
+        nJoueurs.setText(String.format("Connectés: %d", client.getJoueurs().size()));
+        configValidee.setText(String.format("Configuration: %s", configValideeState ? "validée" : "non validée"));
         joueurs.setText("");
         client.getJoueurs().forEach(j -> {
             appendToPane(joueurs, j.nom + "\n", j.estPret ? Color.GREEN : Color.RED);
         });
+    }
+
+    public void unpret() {
+        pret = false;
+        bouton.setText("PRET");
     }
 
     private void appendToPane(JTextPane tp, String msg, Color c) {

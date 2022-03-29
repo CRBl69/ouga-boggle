@@ -12,4 +12,6 @@ public interface ServeurInterface {
     public void annoncerMotTrouve(String nom);
 
     public void annoncerElimination(String nom);
+
+    public void finirJeu();
 }
