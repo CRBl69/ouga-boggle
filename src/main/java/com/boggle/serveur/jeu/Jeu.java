@@ -37,11 +37,6 @@ public abstract class Jeu {
         this.tailleHorizontale = tailleHorizontale;
         this.tailleVerticale = tailleVerticale;
         this.langue = langue;
-        if (nombreManche < 1) {
-            throw new IllegalArgumentException("La nombre de manches doit être supérieur ou égal à 1.");
-        } else {
-            this.nombreMancheTotal = nombreManche;
-        }
         if (dureeManche < 0) {
             throw new IllegalArgumentException("La durée de la manche doit être supérieure ou égal à 0.");
         } else {
@@ -145,8 +140,8 @@ public abstract class Jeu {
      * Enleve un joueur à de partie.
      * @param joueur le joueur à enlever
      */
-    public void enleverJoueur(Joueur joueur) {
-        joueurs.remove(joueur);
+    public boolean enleverJoueur(Joueur joueur) {
+        return joueurs.remove(joueur);
     }
 
     /**
@@ -171,7 +166,10 @@ public abstract class Jeu {
      * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
      */
     public int ajouterMot(LinkedList<Lettre> lettres, Joueur joueur) {
-        return getMancheCourante().ajouterMot(lettres, joueur);
+        if (joueurs.contains(joueur)) {
+            return getMancheCourante().ajouterMot(lettres, joueur);
+        }
+        return 0;
     }
 
     /**
@@ -181,7 +179,10 @@ public abstract class Jeu {
      * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
      */
     public int ajouterMot(String mot, Joueur joueur) {
-        return getMancheCourante().ajouterMot(mot, joueur);
+        if (joueurs.contains(joueur)) {
+            return getMancheCourante().ajouterMot(mot, joueur);
+        }
+        return 0;
     }
 
     public HashMap<Joueur, Integer> getPoints() {
@@ -222,5 +223,6 @@ public abstract class Jeu {
 
     public enum Modes {
         NORMAL,
+        BATTLE_ROYALE,
     }
 }

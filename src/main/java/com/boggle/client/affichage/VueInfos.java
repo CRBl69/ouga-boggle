@@ -32,16 +32,34 @@ public class VueInfos extends JPanel {
         this.pointsLabel.setText("Points : " + Integer.toString(this.points));
     }
 
-    public void updateStatus(boolean mancheEnCours) {
-        if (mancheEnCours) {
-            this.statusLabel.setText("Status : manche en cours");
-        } else {
-            this.statusLabel.setText("Status : pause");
+    public void updateStatus(Status status, boolean desactive) {
+        switch (status) {
+            case MANCHE_EN_COURS:
+                if (desactive) {
+                    this.statusLabel.setText("Status : éliminé");
+                } else {
+                    this.statusLabel.setText("Status : manche en cours");
+                }
+                break;
+            case PAUSE:
+                this.statusLabel.setText("Status : pause");
+                break;
+            case FIN:
+                this.statusLabel.setText("Status : fin");
+                break;
         }
     }
 
     public void updateManches() {
         this.manchesJouees++;
-        this.manchesLabel.setText(String.format("Manches : %d/%d", this.manchesJouees, this.manchesTotal));
+        this.manchesLabel.setText(String.format(
+                "Manches : %d/%s",
+                this.manchesJouees, this.manchesTotal != 0 ? Integer.toString(this.manchesTotal) : "?"));
+    }
+
+    public enum Status {
+        MANCHE_EN_COURS,
+        PAUSE,
+        FIN,
     }
 }

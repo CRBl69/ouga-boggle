@@ -1,7 +1,6 @@
 package com.boggle.serveur.jeu;
 
 import com.boggle.serveur.jeu.Jeu.Modes;
-import com.boggle.serveur.jeu.modes.Normal;
 
 /** Paramètre de la partie i.e nombre de joueur, le timer, etc... */
 public class ConfigurationServeur {
@@ -28,12 +27,16 @@ public class ConfigurationServeur {
             Modes modeDeJeu) {
         this.port = port;
         this.nbJoueurs = nbJoueurs;
-        this.nbManches = nbManches;
         this.timer = timer;
         this.tailleGrilleH = tailleGrilleH;
         this.tailleGrilleV = tailleGrilleV;
         this.langue = langue;
         this.mdp = mdp;
         this.modeDeJeu = modeDeJeu;
+        if (modeDeJeu == Modes.BATTLE_ROYALE) {
+            this.nbManches = 0;
+        } else {
+            this.nbManches = nbManches;
+        }
     }
 }

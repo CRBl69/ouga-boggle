@@ -5,9 +5,9 @@ import com.boggle.serveur.jeu.Jeu;
 import com.boggle.serveur.jeu.Langue;
 import com.boggle.serveur.jeu.Manche;
 
-public class Normal extends Jeu{
+public class Normal extends Jeu {
 
-    public Normal (
+    public Normal(
             int nombreManche,
             int dureeManche,
             int tailleVerticale,
@@ -17,7 +17,7 @@ public class Normal extends Jeu{
         super(nombreManche, dureeManche, tailleVerticale, tailleHorizontale, langue, serveur);
     }
 
-    public void nouvelleManche(){
+    public void nouvelleManche() {
         demarrerManche(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue));
         if (dureeManche != 0) {
             Thread t = new Thread() {

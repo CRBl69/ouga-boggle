@@ -2,11 +2,12 @@
 
 ## Messages client ⇒ serveur
 
-| Mot clef  | Description                                                          | Structure                                            |
-|-----------|----------------------------------------------------------------------|------------------------------------------------------|
-| `status`  | Indique que le joueur est pret ou pad                                | `{ status: boolean }`                                |
-| `mot`     | Envoie les informations du mot que l'utilisateur vient d'entrer.[^1] | `{ id: string, lettres: { x: number, y: number}[] }` |
-| `message` | Envoie un message de chat.                                           | `{ message: string }`                                |
+| Mot clef     | Description                           | Structure                                                                        |
+|--------------|---------------------------------------|----------------------------------------------------------------------------------|
+| `status`     | Indique que le joueur est pret ou pad | `{ status: boolean }`                                                            |
+| `motSouris`  | Envoie un mot entré à la souris.[^1]  | `{ id: string, lettres: { lettre: string, coord: { x: number, y: number } }[] }` |
+| `motClavier` | Envoie un mot entré au clavier.[^1]   | `{ id: string, mot: string }`                                                    |
+| `message`    | Envoie un message de chat.            | `{ message: string }`                                                            |
 
 ## Messages serveur ⇒ client
 
@@ -24,31 +25,33 @@ type Configuration = {
  * aux autres joueurs à tous les joueurs.
  */
 type MancheFinie = {
-    nom: string,        // Nom du joueur.
-    points: number,     // Nombres de points.
-    mots: {             // Les mots trouvés par le joueur.
-        mot: string,    // Le mot.
-        points: number  // Le nombre de points que vaut le mot.
-        coordonees: {   // Les coordonées ou a été trouvé le mot.
-            x: number,
-            y: number
-        }
-    },
-}[];
+    joueurs : {
+        pseudo: string,     // Nom du joueur.
+        points: number,     // Nombres de points.
+        mots: {             // Les mots trouvés par le joueur.
+            mot: string,    // Le mot.
+            points: number  // Le nombre de points que vaut le mot.
+            coordonees: {   // Les coordonées ou a été trouvé le mot.
+                x: number,
+                y: number
+            }[]
+        },
+    }[]
+};
 ```
 
-| Mot clef      | Description                                                              | Structure                          |
-|---------------|--------------------------------------------------------------------------|------------------------------------|
-| `rejoint`     | Indique qu'un joueur a rejoint la partie.                                | `{ nom: string }`                  |
-| `quitte`      | Indique qu'un joueur a quitté la partie.                                 | `{ nom: string }`                  |
-| `reco`        | Indique qu'un joueur s'est reconnecté                                    | `{ nom: string }`                  |
-| `debutJeu`    | Indique que la partie commence.                                          | `Configuration`                    |
-| `finJeu`      | Indique que la partie est finie.                                         | `{}`                               |
-| `debutManche` | Indique que qu'une manche commence.                                      | `{ tableau: string[][] }`          |
-| `finManche`   | Indique qu'une manche s'est finie.                                       | `MancheFinie`                      |
-| `motTrouve`   | Indique qu'un joueur a trouvé un mot.                                    | `{ nom: string }`                  |
-| `motVerifie`  | Indique que le mot envoyé par l'utilisateur a été accepté ou refusé.[^1] | `{ id: string, accepte: boolean }` |
-| `message`     | Indique qu'un joueur à envoyé un message                                 | `{ nom: string, message: string }` |
+| Mot clef      | Description                                                              | Structure                                       |
+|---------------|--------------------------------------------------------------------------|-------------------------------------------------|
+| `connexion`   | Indique qu'un joueur a rejoint ou quitté la partie.                      | `{ nom: string, estConnected: boolean }`        |
+| `status`      | Indique qu'un joueur est prêt ou pas.                                    | `{ nom: string, status: boolean }`              |
+| `debutJeu`    | Indique que la partie commence.                                          | `{ nombreManches: int }`                        |
+| `finJeu`      | Indique que la partie est finie.                                         | `{ gagnants: { nom: string }[] }`               |
+| `debutManche` | Indique que qu'une manche commence.                                      | `{ tableau: string[][] }`                       |
+| `finManche`   | Indique qu'une manche s'est finie.                                       | `MancheFinie`                                   |
+| `motTrouve`   | Indique qu'un joueur a trouvé un mot.                                    | `{ nom: string }`                               |
+| `motVerifie`  | Indique que le mot envoyé par l'utilisateur a été accepté ou refusé.[^1] | `{ id: string, accepte: boolean, points: int }` |
+| `message`     | Indique qu'un joueur a envoyé un message                                 | `{ nom: string, message: string }`              |
+| `elimination` | Indique qu'un joueur a été éliminé.                                      | `nom: string`                                   |
 
 [^1]: Un `id` est utilisé afin de savoir quel mot a été vérifié.
 

@@ -2,10 +2,12 @@ package com.boggle.client;
 
 import com.boggle.client.Client.Serveur;
 import com.boggle.client.affichage.*;
+import com.boggle.client.affichage.VueInfos.Status;
 import com.boggle.serveur.messages.Continue;
 import com.boggle.serveur.messages.DebutJeu;
 import com.boggle.serveur.messages.DebutManche;
 import com.boggle.serveur.messages.FinManche;
+import com.boggle.serveur.messages.FinPartie;
 import com.boggle.serveur.messages.MotTrouve;
 import com.boggle.serveur.messages.MotVerifie;
 import com.boggle.serveur.plateau.*;
@@ -21,6 +23,7 @@ public class AffichageJeu extends JFrame {
     private DebutJeu debutJeu;
     private int nbManchesEcoulees;
     private JPanel infoPanel = new JPanel(new GridLayout(1, 2));
+    private boolean elimine = false;
 
     private VueEntreeTexte entreeTexte = new VueEntreeTexte(mot -> serveur.envoyerMotClavier(mot));
     private VueGrille grille = new VueGrille(entreeTexte, mot -> serveur.envoyerMotSouris(mot));
@@ -127,7 +130,7 @@ public class AffichageJeu extends JFrame {
         SwingUtilities.invokeLater(() -> {
             infoPanel.remove(infos);
             infos = new VueInfos(continuePartie.getDebutJeu().getNbManches(), continuePartie.getNombreManchesJouees());
-            infos.updateStatus(continuePartie.partieEstdemaree());
+            infos.updateStatus(continuePartie.partieEstdemaree() ? Status.MANCHE_EN_COURS : Status.PAUSE, elimine);
             infos.ajouterPoints(continuePartie.getPoints());
             for (int i = 0; i <= continuePartie.getNombreManchesJouees(); i++) {
                 infos.updateManches();
@@ -150,7 +153,7 @@ public class AffichageJeu extends JFrame {
     public void initManche(DebutManche dm) {
         grille.miseAJour(dm.getTableau());
         this.activerInterface(true);
-        infos.updateStatus(true);
+        infos.updateStatus(Status.MANCHE_EN_COURS, elimine);
         infos.updateManches();
         entreeTexte.grabFocus();
         grille.updateUI();
@@ -202,8 +205,10 @@ public class AffichageJeu extends JFrame {
     }
 
     public void activerInterface(boolean activer) {
-        grille.activer(activer);
-        entreeTexte.activer(activer);
+        if (!elimine) {
+            grille.activer(activer);
+            entreeTexte.activer(activer);
+        }
     }
 
     /**
@@ -213,16 +218,23 @@ public class AffichageJeu extends JFrame {
      */
     public void finManche(FinManche finManche) {
         this.activerInterface(false);
-        infos.updateStatus(false);
+        infos.updateStatus(Status.PAUSE, elimine);
         var joueurs = Arrays.asList(finManche.getJoueurs());
         joueurs.sort((j1, j2) -> j1.getPoints() - j2.getPoints());
         joueurs.forEach(j -> ajouterChat(String.format("%s a %d points.", j.getNom(), j.getPoints())));
         nbManchesEcoulees++;
-        if (nbManchesEcoulees == debutJeu.getNbManches()) {
-            ajouterChat("Fin de la partie. Victoire de "
-                    + joueurs.get(joueurs.size() - 1).getNom() + ".");
+        if (debutJeu.getNbManches() != 0) {
+            if (!(nbManchesEcoulees == debutJeu.getNbManches())) {
+                ajouterChat("Manche finie, la prochaine manche commence dans 10 secondes.");
+            } else {
+                ajouterChat("Manche finie.");
+            }
         } else {
-            ajouterChat("Manche finie, la prochaine manche commence dans 10 secondes.");
+            if (!(joueurs.size() == 1)) {
+                ajouterChat("Manche finie, la prochaine manche commence dans 10 secondes.");
+            } else {
+                ajouterChat("Manche finie.");
+            }
         }
     }
 
@@ -240,5 +252,21 @@ public class AffichageJeu extends JFrame {
 
     private void jouerSonDeVictoire() {
         // Util.playSound("victoire.mp3");
+    }
+
+    public void eliminer() {
+        activerInterface(false);
+        this.elimine = true;
+    }
+
+    public void finJeu(FinPartie finJeu) {
+        String gagnants = "";
+        for (var j : finJeu.getGagnants()) {
+            gagnants += j.nom + ", ";
+        }
+        gagnants = gagnants.substring(0, gagnants.length() - 2);
+        infos.updateStatus(Status.FIN, elimine);
+        minuteur.fin();
+        ajouterChat("Fin de la partie. Victoire de " + gagnants + ".");
     }
 }

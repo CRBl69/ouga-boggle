@@ -2,9 +2,8 @@ package com.boggle.client;
 
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
-import com.boggle.serveur.jeu.Langue;
 import com.boggle.serveur.jeu.Jeu.Modes;
-
+import com.boggle.serveur.jeu.Langue;
 import java.awt.*;
 import javax.swing.*;
 
@@ -57,7 +56,7 @@ public class AffichageConfigurationServeur extends JFrame {
         config.add(langueGroupe);
 
         JPanel modeGroupe = new JPanel();
-        JLabel modeLabel = new JLabel("Langue :");
+        JLabel modeLabel = new JLabel("Mode de jeu :");
         JComboBox<String> modeComboBox = new JComboBox<String>();
         modeLabel.setLabelFor(modeComboBox);
         modeComboBox.addItem("Normal");
@@ -80,8 +79,9 @@ public class AffichageConfigurationServeur extends JFrame {
                         case "allemand" -> Langue.DE;
                         default -> Langue.ES;
                     };
-            var modeDeJeu =
+            Modes modeDeJeu =
                     switch (modeComboBox.getSelectedItem().toString()) {
+                        case "Battle Royale" -> Modes.BATTLE_ROYALE;
                         default -> Modes.NORMAL;
                     };
 
@@ -95,8 +95,7 @@ public class AffichageConfigurationServeur extends JFrame {
                         Integer.parseInt(((JTextField) ((JPanel) config.getComponent(5)).getComponent(1)).getText()),
                         langue,
                         ((JTextField) ((JPanel) config.getComponent(6)).getComponent(1)).getText(),
-                        modeDeJeu
-                        );
+                        modeDeJeu);
                 setVisible(false);
                 dispose();
                 try {
