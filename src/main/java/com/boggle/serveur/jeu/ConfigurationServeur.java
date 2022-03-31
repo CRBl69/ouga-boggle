@@ -1,5 +1,7 @@
 package com.boggle.serveur.jeu;
 
+import com.boggle.serveur.jeu.Jeu.Modes;
+
 /** Paramètre de la partie i.e nombre de joueur, le timer, etc... */
 public class ConfigurationServeur {
 
@@ -11,6 +13,7 @@ public class ConfigurationServeur {
     public final int tailleGrilleV;
     public final Langue langue;
     public final String mdp;
+    public final Modes modeDeJeu;
 
     public ConfigurationServeur(
             int port,
@@ -20,14 +23,20 @@ public class ConfigurationServeur {
             int tailleGrilleH,
             int tailleGrilleV,
             Langue langue,
-            String mdp) {
+            String mdp,
+            Modes modeDeJeu) {
         this.port = port;
         this.nbJoueurs = nbJoueurs;
-        this.nbManches = nbManches;
         this.timer = timer;
         this.tailleGrilleH = tailleGrilleH;
         this.tailleGrilleV = tailleGrilleV;
         this.langue = langue;
         this.mdp = mdp;
+        this.modeDeJeu = modeDeJeu;
+        if (modeDeJeu == Modes.BATTLE_ROYALE) {
+            this.nbManches = 0;
+        } else {
+            this.nbManches = nbManches;
+        }
     }
 }

@@ -1,12 +1,15 @@
 package com.boggle.serveur.messages;
 
+import com.boggle.serveur.jeu.Joueur;
 import com.boggle.serveur.plateau.Grille;
+import java.util.HashSet;
 
 public class DebutManche {
     private String[][] tableau;
     private int longueurManche;
+    private HashSet<Joueur> joueurs;
 
-    public DebutManche(Grille grille, int lm) {
+    public DebutManche(Grille grille, int lm, HashSet<Joueur> joueurs) {
         tableau = new String[grille.getLignes()][grille.getColonnes()];
         for (int i = 0; i < grille.getLignes(); i++) {
             for (int j = 0; j < grille.getColonnes(); j++) {
@@ -14,6 +17,7 @@ public class DebutManche {
             }
         }
         longueurManche = lm;
+        this.joueurs = joueurs;
     }
 
     public DebutManche(String[][] grille, int lm) {
@@ -23,6 +27,10 @@ public class DebutManche {
 
     public String[][] getTableau() {
         return tableau;
+    }
+
+    public HashSet<Joueur> getJoueurs() {
+        return joueurs;
     }
 
     public int getLongueurManche() {

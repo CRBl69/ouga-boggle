@@ -3,6 +3,7 @@ package com.boggle.serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
 import com.boggle.serveur.jeu.Jeu;
 import com.boggle.serveur.jeu.Joueur;
+import com.boggle.serveur.jeu.modes.*;
 import com.boggle.serveur.messages.*;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.util.Logger;
@@ -29,7 +30,9 @@ public class Serveur implements ServeurInterface {
         this.configuration = c;
         this.motDePasse = c.mdp;
         serveur = new ServerSocket(c.port);
-        jeu = new Jeu(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+        jeu = switch (c.modeDeJeu) {
+            case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+            default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);};
         demarerServeur();
     }
 
@@ -73,8 +76,16 @@ public class Serveur implements ServeurInterface {
         String nom = dis.readUTF();
         String motDePasse = dis.readUTF();
 
+        if (clients.stream().anyMatch(c -> c.joueur.nom.equals(nom))) {
+            dos.writeUTF("NOPE");
+            dos.close();
+            dis.close();
+            s.close();
+            return null;
+        }
+
         if (motDePasse.equals(this.motDePasse)) {
-            if (jeu.partieEstCommencee()) {
+            if (jeu.estCommence()) {
                 if (jeu.getJoueurs().stream().anyMatch(j -> j.nom.equals(nom))) {
                     Continue continueMessage = new Continue(
                             lettresToString(jeu.getMancheCourante().getGrille().getGrille()),
@@ -127,13 +138,13 @@ public class Serveur implements ServeurInterface {
     }
 
     public void annoncerFinPartie() {
-        annoncer("finJeu");
+        annoncer("finJeu " + gson.toJson(new FinPartie(jeu.getJoueurGagnant())));
     }
 
     public void annoncerDebutManche() {
         annoncer("debutManche "
                 + gson.toJson(new DebutManche(
-                        jeu.getGrille(), jeu.getMancheCourante().getMinuteur().getSec())));
+                        jeu.getGrille(), jeu.getMancheCourante().getMinuteur().getSec(), jeu.getJoueurs())));
     }
 
     public void annoncerFinManche() {
@@ -144,12 +155,16 @@ public class Serveur implements ServeurInterface {
         annoncer("motTrouve " + gson.toJson(new MotTrouve(nom)));
     }
 
+    public void annoncerElimination(String nom) {
+        annoncer("elimination " + nom);
+    }
+
     /**
      * Annonce un message à tous les clients.
      *
      * @param message message à annoncer
      */
-    private void annoncer(String message) {
+    public void annoncer(String message) {
         for (Client c : clients) {
             c.envoyerMessage(message);
         }
@@ -164,19 +179,19 @@ public class Serveur implements ServeurInterface {
         for (Lettre l : nouveauMot.getLettres()) {
             liste.add(jeu.getMancheCourante().getGrille().getGrille()[l.coord.x][l.coord.y]);
         }
-        int valide = jeu.ajouterMot(
-                liste,
-                jeu.getJoueurs().stream()
-                        .filter(j -> j.nom.equals(nouveauMot.getPseudo()))
-                        .findFirst()
-                        .get());
-        if (valide > 0) {
-            logger.info("Mot valide");
-            annoncerMotTrouve(nouveauMot.getPseudo());
-        } else {
-            logger.info("Mot invalide");
+        var joueurOpt = jeu.getJoueurs().stream()
+                .filter(j -> j.nom.equals(nouveauMot.getPseudo()))
+                .findFirst();
+        if (joueurOpt.isPresent()) {
+            int valide = jeu.ajouterMot(liste, joueurOpt.get());
+            if (valide > 0) {
+                logger.info("Mot valide");
+                annoncerMotTrouve(nouveauMot.getPseudo());
+            } else {
+                logger.info("Mot invalide");
+            }
+            client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
         }
-        client.envoyerMessage("motVerifie " + gson.toJson(new MotVerifie(nouveauMot.getId(), valide > 0, valide)));
     }
 
     /**
@@ -226,14 +241,14 @@ public class Serveur implements ServeurInterface {
                             annoncerMessage(chat);
                             break;
                         case "status":
-                            if (jeu.partieEstCommencee()) break;
+                            if (jeu.estCommence()) break;
                             Status status = gson.fromJson(donnees, Status.class);
                             status.setPseudo(client.joueur.nom);
                             annoncerStatus(status);
 
                             client.joueur.estPret = status.getStatus();
                             if (tousLesClientsSontPrets()) {
-                                jeu.commencerPartie();
+                                jeu.demarrerJeu();
                                 clients.forEach(c -> {
                                     jeu.ajouterJoueur(c.joueur);
                                 });
@@ -248,11 +263,6 @@ public class Serveur implements ServeurInterface {
                             NouveauMotClavier motClavier = gson.fromJson(donnees, NouveauMotClavier.class);
                             motClavier.setPseudo(client.joueur.nom);
                             ajouterMot(motClavier, client);
-                            break;
-                        case "continue":
-                            break;
-                        case "stop":
-                            exit = true;
                             break;
                         default:
                             logger.warn(motClef + " n'est pas reconnu");

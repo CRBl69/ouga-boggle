@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.boggle.serveur.ServeurInterface;
+import com.boggle.serveur.jeu.modes.Normal;
 import com.boggle.serveur.plateau.Coordonnee;
 import com.boggle.serveur.plateau.Lettre;
 import java.util.LinkedList;
@@ -27,21 +28,23 @@ public class JeuTest {
             public void annoncerFinManche() {}
 
             public void annoncerMotTrouve(String nom) {}
+
+            public void annoncerElimination(String nom) {}
         };
     }
 
     @Test
     public void creationDeJeu() {
-        var jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
+        var jeu = new Normal(3, 60, 4, 4, Langue.FR, serveur);
 
-        jeu.commencerPartie();
+        jeu.demarrerJeu();
 
         assertEquals(4, jeu.getGrille().getColonnes());
         assertEquals(4, jeu.getGrille().getLignes());
 
         var erreur = false;
         try {
-            new Jeu(-1, -1, -1, -1, Langue.FR, serveur);
+            new Normal(-1, -1, -1, -1, Langue.FR, serveur);
         } catch (IllegalArgumentException e) {
             erreur = true;
         }
@@ -50,7 +53,7 @@ public class JeuTest {
 
     @Test
     public void ajouterJoueur() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
+        Jeu jeu = new Normal(3, 60, 4, 4, Langue.FR, serveur);
 
         jeu.ajouterJoueur(new Joueur("Bogdan"));
         assertTrue(jeu.getJoueurs().size() == 1);
@@ -61,11 +64,11 @@ public class JeuTest {
 
     @Test
     public void ajouterMotTrouve() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
+        Jeu jeu = new Normal(3, 60, 4, 4, Langue.FR, serveur);
         Joueur joueur = new Joueur("Bogdan");
         jeu.ajouterJoueur(joueur);
 
-        jeu.commencerPartie();
+        jeu.demarrerJeu();
 
         var grille = jeu.getMancheCourante().getGrille().getGrille();
 
@@ -87,13 +90,13 @@ public class JeuTest {
 
     @Test
     public void joueurGagnants() {
-        Jeu jeu = new Jeu(3, 60, 4, 4, Langue.FR, serveur);
+        Jeu jeu = new Normal(3, 60, 4, 4, Langue.FR, serveur);
         Joueur joueur1 = new Joueur("Bogdan");
         Joueur joueur2 = new Joueur("Claire");
         jeu.ajouterJoueur(joueur1);
         jeu.ajouterJoueur(joueur2);
 
-        jeu.commencerPartie();
+        jeu.demarrerJeu();
 
         assertEquals(0, jeu.getJoueurGagnant().size());
 

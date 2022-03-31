@@ -9,6 +9,7 @@ import com.boggle.client.Client;
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationClient;
 import com.boggle.serveur.jeu.ConfigurationServeur;
+import com.boggle.serveur.jeu.Jeu;
 import com.boggle.serveur.jeu.Langue;
 import com.boggle.util.ConnexionServeurException;
 import com.boggle.util.Logger;
@@ -79,7 +80,8 @@ public class App {
                         argsServeur.getTailleGrilleH(),
                         argsServeur.getTailleGrilleV(),
                         argsServeur.getLangue(),
-                        argsMain.getMotDePasse());
+                        argsMain.getMotDePasse(),
+                        argsServeur.getModeDeJeu());
                 try {
                     new Serveur(configServeur);
                 } catch (IOException e) {
@@ -148,6 +150,11 @@ class ArgumentsServeur {
             description = "Nombre maximal de joueurs")
     private int nbJoueursMax = 10;
 
+    @Parameter(
+            names = {"--mode", "-m"},
+            description = "Le mode de jeu.")
+    private Jeu.Modes modeDeJeu = Jeu.Modes.NORMAL;
+
     public int getNbManches() {
         return nbManche;
     }
@@ -170,5 +177,9 @@ class ArgumentsServeur {
 
     public Langue getLangue() {
         return langue;
+    }
+
+    public Jeu.Modes getModeDeJeu() {
+        return modeDeJeu;
     }
 }

@@ -50,7 +50,7 @@ public class FinManche {
         for (var joueur : jeu.getJoueurs()) {
             Joueur j = new Joueur();
             j.pseudo = joueur.nom;
-            j.points = points.get(joueur);
+            j.points = points.getOrDefault(joueur, 0);
             var liste = mots.get(joueur);
             j.mots = new Mot[liste != null ? liste.size() : 0];
             if (liste != null) {

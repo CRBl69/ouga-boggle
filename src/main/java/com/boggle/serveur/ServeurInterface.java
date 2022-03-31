@@ -10,4 +10,6 @@ public interface ServeurInterface {
     public void annoncerFinManche();
 
     public void annoncerMotTrouve(String nom);
+
+    public void annoncerElimination(String nom);
 }

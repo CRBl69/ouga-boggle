@@ -2,6 +2,7 @@ package com.boggle.client;
 
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
+import com.boggle.serveur.jeu.Jeu.Modes;
 import com.boggle.serveur.jeu.Langue;
 import java.awt.*;
 import javax.swing.*;
@@ -53,6 +54,18 @@ public class AffichageConfigurationServeur extends JFrame {
         langueGroupe.add(langueComboBox);
 
         config.add(langueGroupe);
+
+        JPanel modeGroupe = new JPanel();
+        JLabel modeLabel = new JLabel("Mode de jeu :");
+        JComboBox<String> modeComboBox = new JComboBox<String>();
+        modeLabel.setLabelFor(modeComboBox);
+        modeComboBox.addItem("Normal");
+        modeComboBox.addItem("Battle Royale");
+        modeGroupe.add(modeLabel);
+        modeGroupe.add(modeComboBox);
+
+        config.add(modeGroupe);
+
         add(config);
 
         JButton go = new JButton("Lancer serveur");
@@ -66,6 +79,11 @@ public class AffichageConfigurationServeur extends JFrame {
                         case "allemand" -> Langue.DE;
                         default -> Langue.ES;
                     };
+            Modes modeDeJeu =
+                    switch (modeComboBox.getSelectedItem().toString()) {
+                        case "Battle Royale" -> Modes.BATTLE_ROYALE;
+                        default -> Modes.NORMAL;
+                    };
 
             try {
                 ConfigurationServeur c = new ConfigurationServeur(
@@ -76,7 +94,8 @@ public class AffichageConfigurationServeur extends JFrame {
                         Integer.parseInt(((JTextField) ((JPanel) config.getComponent(4)).getComponent(1)).getText()),
                         Integer.parseInt(((JTextField) ((JPanel) config.getComponent(5)).getComponent(1)).getText()),
                         langue,
-                        ((JTextField) ((JPanel) config.getComponent(6)).getComponent(1)).getText());
+                        ((JTextField) ((JPanel) config.getComponent(6)).getComponent(1)).getText(),
+                        modeDeJeu);
                 setVisible(false);
                 dispose();
                 try {

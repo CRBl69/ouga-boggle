@@ -191,6 +191,16 @@ public class Client {
                             FinManche finManche = gson.fromJson(donnees, FinManche.class);
                             affichageJeu.finManche(finManche);
                             break;
+                        case "finJeu":
+                            FinPartie finJeu = gson.fromJson(donnees, FinPartie.class);
+                            affichageJeu.finJeu(finJeu);
+                            break;
+                        case "elimination":
+                            affichageJeu.ajouterChat(donnees + " à été éliminé.");
+                            if (donnees.equals(config.pseudo)) {
+                                affichageJeu.eliminer();
+                            }
+                            break;
                         default:
                             logger.warn(message + " n'est pas reconnu");
                             break;

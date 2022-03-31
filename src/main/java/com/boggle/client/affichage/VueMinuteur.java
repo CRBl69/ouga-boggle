@@ -5,6 +5,7 @@ import javax.swing.*;
 
 public class VueMinuteur extends JPanel {
     private JLabel label;
+    private MinuteurThread thread;
 
     public VueMinuteur() {
         super();
@@ -22,9 +23,9 @@ public class VueMinuteur extends JPanel {
 
     public void start(int minuteur) {
         this.label.setText(Integer.toString(minuteur));
-        MinuteurThread t = new MinuteurThread();
-        t.setTempsRestant(minuteur);
-        t.start();
+        thread = new MinuteurThread();
+        thread.setTempsRestant(minuteur);
+        thread.start();
     }
 
     private class MinuteurThread extends Thread {
@@ -39,7 +40,6 @@ public class VueMinuteur extends JPanel {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
                 tempsRestant--;
                 setMinuteur(tempsRestant);
@@ -49,11 +49,15 @@ public class VueMinuteur extends JPanel {
                 try {
                     Thread.sleep(1000);
                 } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
                 tempsRestant--;
                 setMinuteur(tempsRestant);
             }
         }
+    }
+
+    public void fin() {
+        thread.interrupt();
+        setMinuteur(0);
     }
 }

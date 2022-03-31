@@ -11,16 +11,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 /** Fonctions relatives à la partie. */
-public class Jeu {
-    private HashSet<Joueur> joueurs;
-    private ArrayList<Manche> manches;
-    private int nombreMancheTotal;
-    private int dureeManche;
-    private int tailleVerticale;
-    private int tailleHorizontale;
-    private Langue langue;
-    private ServeurInterface serveur;
-    private boolean mancheEnCours;
+public abstract class Jeu {
+    protected HashSet<Joueur> joueurs;
+    protected ArrayList<Manche> manches;
+    protected int nombreMancheTotal;
+    protected int dureeManche;
+    protected int tailleVerticale;
+    protected int tailleHorizontale;
+    protected Langue langue;
+    protected ServeurInterface serveur;
+    protected boolean mancheEnCours;
 
     public Jeu(
             int nombreManche,
@@ -37,11 +37,6 @@ public class Jeu {
         this.tailleHorizontale = tailleHorizontale;
         this.tailleVerticale = tailleVerticale;
         this.langue = langue;
-        if (nombreManche < 1) {
-            throw new IllegalArgumentException("La nombre de manches doit être supérieur ou égal à 1.");
-        } else {
-            this.nombreMancheTotal = nombreManche;
-        }
         if (dureeManche < 0) {
             throw new IllegalArgumentException("La durée de la manche doit être supérieure ou égal à 0.");
         } else {
@@ -59,58 +54,62 @@ public class Jeu {
         }
     }
 
-    public void commencerPartie() {
-        serveur.annoncerDebutPartie();
-        nouvelleManche();
-    }
-
-    public boolean partieEstCommencee() {
+    /**
+     * Indique si le jeu est commencé.
+     * @return true si le jeu est en cours, false sinon
+     */
+    public boolean estCommence() {
         return !manches.isEmpty();
     }
 
     /**
+     * Indique si le jeu est fini.
      * @return true si toutes les manches ont été jouées, false sinon
      */
-    public boolean partieFinie() {
+    public boolean estFini() {
         return nombreMancheTotal == manches.size();
     }
 
     /**
-     * lance une nouvelle manche et fait les actions
-     * suivantes : sauvegarde la manche actuelle et génère
-     * une nouvelle grille, réinitialise la liste de mots
-     * trouvés, lance un nouveau minuteur et incrémente la
-     * valeur des manches effectuées
+     * Démarre le jeu et lance la première manche.
      */
-    public void nouvelleManche() {
-        manches.add(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue));
-        serveur.annoncerDebutManche();
-        if (dureeManche != 0) {
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        mancheEnCours = true;
-                        Thread.sleep(dureeManche * 1000);
-                        serveur.annoncerFinManche();
-                        mancheEnCours = false;
-                        if (manches.size() < nombreMancheTotal) {
-                            Thread.sleep(10000);
-                            nouvelleManche();
-                        } else {
-                            serveur.annoncerFinPartie();
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            t.start();
-        } else {
-            // TODO: implémenter une manche sans minuteur (par vote ?)
-        }
+    public void demarrerJeu() {
+        serveur.annoncerDebutPartie();
+        nouvelleManche();
     }
 
     /**
+     * Fini le jeu.
+     */
+    protected void finirJeu() {
+        serveur.annoncerFinPartie();
+    }
+
+    /**
+     * Commence la manche passée en parametre.
+     * @param m la manche à commencer
+     */
+    protected void demarrerManche(Manche m) {
+        mancheEnCours = true;
+        manches.add(m);
+        serveur.annoncerDebutManche();
+    }
+
+    /**
+     * Fini la dernière manche commencée.
+     */
+    protected void finirManche() {
+        mancheEnCours = false;
+        serveur.annoncerFinManche();
+    }
+
+    /**
+     * Démarre une nouvelle manche.
+     */
+    public abstract void nouvelleManche();
+
+    /**
+     * Calcule les joueurs gagnants.
      * @return les joueurs qui ont le plus de points
      */
     public List<Joueur> getJoueurGagnant() {
@@ -129,14 +128,26 @@ public class Jeu {
         return joueursGagnants;
     }
 
+    /**
+     * Ajoute un joueur à la partie.
+     * @param joueur le joueur à ajouter
+     */
     public void ajouterJoueur(Joueur joueur) {
         joueurs.add(joueur);
     }
 
-    public void enleverJoueur(Joueur joueur) {
-        joueurs.remove(joueur);
+    /**
+     * Enleve un joueur à de partie.
+     * @param joueur le joueur à enlever
+     */
+    public boolean enleverJoueur(Joueur joueur) {
+        return joueurs.remove(joueur);
     }
 
+    /**
+     * Retourne tous les joueurs.
+     * @return tous les joueurs
+     */
     public HashSet<Joueur> getJoueurs() {
         return joueurs;
     }
@@ -149,21 +160,29 @@ public class Jeu {
     }
 
     /**
+     * Ajoute un mot entrée à la souris.
      * @param lettre les lettres trouvés
      * @param joueur joueur qui a trouvé les lettres
      * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
      */
     public int ajouterMot(LinkedList<Lettre> lettres, Joueur joueur) {
-        return getMancheCourante().ajouterMot(lettres, joueur);
+        if (joueurs.contains(joueur)) {
+            return getMancheCourante().ajouterMot(lettres, joueur);
+        }
+        return 0;
     }
 
     /**
+     * Ajoute un mot entrée au clavier.
      * @param lettre les lettres trouvés
      * @param joueur joueur qui a trouvé les lettres
      * @return le score du mot trouvé, 0 si le mot n'est pas trouvé
      */
     public int ajouterMot(String mot, Joueur joueur) {
-        return getMancheCourante().ajouterMot(mot, joueur);
+        if (joueurs.contains(joueur)) {
+            return getMancheCourante().ajouterMot(mot, joueur);
+        }
+        return 0;
     }
 
     public HashMap<Joueur, Integer> getPoints() {
@@ -185,11 +204,25 @@ public class Jeu {
         return getMancheCourante().getListeMots();
     }
 
+    /**
+     * Indique si une manche est en cours.
+     * @return true si une manche est en cours, false sinon
+     */
     public boolean mancheEnCours() {
         return mancheEnCours;
     }
 
+    /**
+     * Indique le nombre de manches qui ont été jouées.
+     * La manche courante est prise en compte.
+     * @return le nombre de manches jouées
+     */
     public int getNombreManche() {
         return manches.size();
+    }
+
+    public enum Modes {
+        NORMAL,
+        BATTLE_ROYALE,
     }
 }
