@@ -382,6 +382,7 @@ public class Serveur implements ServeurInterface {
         return lettresString;
     }
 
+    /** à la fin du jeu, rend tous les clients non pret et remet le jeu à null*/
     public void finirJeu() {
         clients.forEach(c -> {
             c.joueur.estPret = false;

@@ -3,6 +3,7 @@ package com.boggle.serveur.messages;
 import com.boggle.serveur.jeu.Jeu.Modes;
 import com.boggle.serveur.jeu.Langue;
 
+/** Configuration d'un jeu */
 public class ConfigurationJeu {
     public final int nbManches;
     public final int timer;
@@ -11,6 +12,14 @@ public class ConfigurationJeu {
     public final Langue langue;
     public final Modes modeDeJeu;
 
+    /**
+     *
+     * @param nbManches nombre manche
+     * @param timer temps de jeu
+     * @param tailleGrilleH hauteur de la grille
+     * @param tailleGrilleV largeur de la grille
+     * @param langue langue du la grille
+     */
     public ConfigurationJeu(
             int nbManches, int timer, int tailleGrilleH, int tailleGrilleV, Langue langue, Modes modeDeJeu) {
         this.modeDeJeu = modeDeJeu;

@@ -282,6 +282,7 @@ public class Client {
         return joueurs;
     }
 
+    /** Ouvre la fenêtre du lobby et ferme la fenêtre du jeu */
     public void lobby() {
         this.affichageJeu.setVisible(false);
         this.affichageStatus.unpret();
