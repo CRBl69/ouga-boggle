@@ -91,4 +91,8 @@ public class Dictionnaire {
         }
         return null;
     }
+
+    public static Set<String> getMots() {
+	return mots;
+    }
 }
