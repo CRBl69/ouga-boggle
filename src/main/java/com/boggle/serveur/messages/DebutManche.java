@@ -9,7 +9,7 @@ public class DebutManche {
     private int longueurManche;
     private HashSet<Joueur> joueurs;
     private int nMots;
-    
+
     public DebutManche(Grille grille, int lm, HashSet<Joueur> joueurs) {
         tableau = new String[grille.getLignes()][grille.getColonnes()];
         for (int i = 0; i < grille.getLignes(); i++) {

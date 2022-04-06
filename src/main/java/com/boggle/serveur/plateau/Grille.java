@@ -50,10 +50,9 @@ public class Grille {
     }
 
     private int compterMots() {
-        return (int) Dictionnaire.getMots()
-            .stream()
-            .filter(mot -> this.trouverMot(mot) != null)
-            .count();
+        return (int) Dictionnaire.getMots().stream()
+                .filter(mot -> this.trouverMot(mot) != null)
+                .count();
     }
 
     public int getColonnes() {
@@ -114,17 +113,15 @@ public class Grille {
             int a = coord[0];
             int b = coord[1];
 
-            if (a < 0 || b < 0 || a >= grille.length || b >= grille[0].length)
-                continue;
+            if (a < 0 || b < 0 || a >= grille.length || b >= grille[0].length) continue;
 
             if (this.grille[a][b].lettre.charAt(0) == mot.charAt(0)) {
-                        liste.add(grille[a][b]);
+                liste.add(grille[a][b]);
                 if (checkVoisin(mot.substring(1), a, b, liste) != null) {
                     return liste;
                 }
                 liste.remove(grille[a][b]);
             }
-
         }
         return null;
     }

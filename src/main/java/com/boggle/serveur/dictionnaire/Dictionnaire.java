@@ -93,6 +93,6 @@ public class Dictionnaire {
     }
 
     public static Set<String> getMots() {
-	return mots;
+        return mots;
     }
 }
