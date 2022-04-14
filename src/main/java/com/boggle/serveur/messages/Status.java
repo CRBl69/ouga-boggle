@@ -4,6 +4,11 @@ public class Status {
     private boolean status;
     private String pseudo;
 
+    public Status(boolean status, String pseudo) {
+        this.status = status;
+        this.pseudo = pseudo;
+    }
+
     public boolean getStatus() {
         return status;
     }

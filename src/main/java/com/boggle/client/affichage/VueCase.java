@@ -91,7 +91,6 @@ public class VueCase extends JPanel implements MouseInputListener {
     @Override
     public void mouseEntered(MouseEvent arg0) {
         if (mouseDown) {
-            System.out.println(selectionnee);
             if (selectionnee) {
                 selection.subList(selection.indexOf(this), selection.size()).forEach(VueCase::deselectionner);
                 selection = selection.subList(0, selection.indexOf(this));

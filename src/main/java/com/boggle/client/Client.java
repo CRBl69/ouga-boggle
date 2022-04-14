@@ -88,7 +88,7 @@ public class Client {
         joueurs.addAll(poigneeDeMain.getJoueurs());
 
         if (poigneeDeMain.partieDejaCommencee()) {
-            affichageJeu = new AffichageJeu(new Serveur(dos), poigneeDeMain.getContinuePartie());
+            affichageJeu = new AffichageJeu(new Serveur(dos), poigneeDeMain.getContinuePartie(), this);
             affichageJeu.setVisible(true);
         }
 
@@ -99,6 +99,14 @@ public class Client {
     public void envoyerStatus(boolean status) {
         try {
             dos.writeUTF(String.format("status {\"status\": %b}", status));
+        } catch (IOException e) {
+        }
+    }
+
+    /** Envoie une configuration au serveur. */
+    public void envoyerConfiguration(ConfigurationJeu configuration) {
+        try {
+            dos.writeUTF(String.format("config %s", gson.toJson(configuration)));
         } catch (IOException e) {
         }
     }
@@ -180,7 +188,7 @@ public class Client {
                         case "debutJeu":
                             DebutJeu debutJeu = gson.fromJson(donnees, DebutJeu.class);
                             affichageStatus.setVisible(false);
-                            affichageJeu = new AffichageJeu(new Serveur(dos), debutJeu);
+                            affichageJeu = new AffichageJeu(new Serveur(dos), debutJeu, Client.this);
                             break;
                         case "debutManche":
                             DebutManche debutManche = gson.fromJson(donnees, DebutManche.class);
@@ -249,6 +257,15 @@ public class Client {
          *
          * @param mot Le mot à envoyer.
          */
+        public void envoyerParametres(ConfigurationJeu configJeu) {
+            envoyer("configJeu " + gson.toJson(configJeu));
+        }
+
+        /**
+         * Permets d'envoyer un mot au serveur.
+         *
+         * @param mot Le mot à envoyer.
+         */
         public void envoyerMotSouris(List<Lettre> mot) {
             var motObj = new NouveauMotSouris(
                     mot.toArray(new Lettre[mot.size()]), UUID.randomUUID().toString());
@@ -263,5 +280,12 @@ public class Client {
 
     public ArrayList<Joueur> getJoueurs() {
         return joueurs;
+    }
+
+    /** Ouvre la fenêtre du lobby et ferme la fenêtre du jeu */
+    public void lobby() {
+        this.affichageJeu.setVisible(false);
+        this.affichageStatus.unpret();
+        this.affichageStatus.setVisible(true);
     }
 }

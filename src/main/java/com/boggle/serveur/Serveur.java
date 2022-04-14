@@ -25,15 +25,22 @@ public class Serveur implements ServeurInterface {
     private Gson gson = new Gson();
     private Jeu jeu;
     private ConfigurationServeur configuration;
+    private ConfigurationJeu configurationJeu;
+    private Client chefDeLobby;
 
     public Serveur(ConfigurationServeur c) throws IOException {
         this.configuration = c;
         this.motDePasse = c.mdp;
         serveur = new ServerSocket(c.port);
+        demarerServeur();
+    }
+
+    public void lancerPartie(ConfigurationJeu c) {
+        configurationJeu = c;
         jeu = switch (c.modeDeJeu) {
             case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
             default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);};
-        demarerServeur();
+        jeu.demarrerJeu();
     }
 
     /** Démarre le serveur. */
@@ -47,6 +54,9 @@ public class Serveur implements ServeurInterface {
                 Client client = poigneeDeMain(s);
                 if (client != null) {
                     annoncerNouveauClient(client);
+                    if (clients.size() == 0) {
+                        chefDeLobby = client;
+                    }
                     clients.add(client);
                     Thread t = new GestionnaireClient(client);
                     t.start();
@@ -85,13 +95,13 @@ public class Serveur implements ServeurInterface {
         }
 
         if (motDePasse.equals(this.motDePasse)) {
-            if (jeu.estCommence()) {
+            if (jeu != null && jeu.estCommence()) {
                 if (jeu.getJoueurs().stream().anyMatch(j -> j.nom.equals(nom))) {
                     Continue continueMessage = new Continue(
                             lettresToString(jeu.getMancheCourante().getGrille().getGrille()),
                             jeu.mancheEnCours(),
                             (int) jeu.getMancheCourante().getMinuteur().tempsRestant(),
-                            new DebutJeu(configuration.nbManches),
+                            new DebutJeu(configurationJeu.nbManches),
                             jeu.getNombreManche() - 1,
                             jeu.getPoints().getOrDefault(new Joueur(nom), 0));
                     dos.writeUTF(
@@ -134,7 +144,7 @@ public class Serveur implements ServeurInterface {
     }
 
     public void annoncerDebutPartie() {
-        annoncer("debutJeu " + gson.toJson(new DebutJeu(configuration.nbManches)));
+        annoncer("debutJeu " + gson.toJson(new DebutJeu(configurationJeu.nbManches)));
     }
 
     public void annoncerFinPartie() {
@@ -241,14 +251,14 @@ public class Serveur implements ServeurInterface {
                             annoncerMessage(chat);
                             break;
                         case "status":
-                            if (jeu.estCommence()) break;
+                            if (jeu != null && jeu.estCommence()) break;
                             Status status = gson.fromJson(donnees, Status.class);
                             status.setPseudo(client.joueur.nom);
                             annoncerStatus(status);
 
                             client.joueur.estPret = status.getStatus();
-                            if (tousLesClientsSontPrets()) {
-                                jeu.demarrerJeu();
+                            if (tousLesClientsSontPrets() && configurationJeu != null) {
+                                lancerPartie(configurationJeu);
                                 clients.forEach(c -> {
                                     jeu.ajouterJoueur(c.joueur);
                                 });
@@ -263,6 +273,23 @@ public class Serveur implements ServeurInterface {
                             NouveauMotClavier motClavier = gson.fromJson(donnees, NouveauMotClavier.class);
                             motClavier.setPseudo(client.joueur.nom);
                             ajouterMot(motClavier, client);
+                            break;
+                        case "config":
+                            ConfigurationJeu configJeu = gson.fromJson(donnees, ConfigurationJeu.class);
+                            if (client == chefDeLobby) {
+                                configurationJeu = configJeu;
+                            }
+                            if (tousLesClientsSontPrets()) {
+                                lancerPartie(configurationJeu);
+                                clients.forEach(c -> {
+                                    jeu.ajouterJoueur(c.joueur);
+                                });
+                            }
+                            break;
+                        case "continue":
+                            break;
+                        case "stop":
+                            exit = true;
                             break;
                         default:
                             logger.warn(motClef + " n'est pas reconnu");
@@ -353,5 +380,14 @@ public class Serveur implements ServeurInterface {
             }
         }
         return lettresString;
+    }
+
+    /** à la fin du jeu, rend tous les clients non pret et remet le jeu à null*/
+    public void finirJeu() {
+        clients.forEach(c -> {
+            c.joueur.estPret = false;
+            annoncerStatus(new Status(false, c.joueur.nom));
+        });
+        jeu = null;
     }
 }

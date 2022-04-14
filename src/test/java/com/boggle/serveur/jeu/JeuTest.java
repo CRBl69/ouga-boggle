@@ -30,6 +30,9 @@ public class JeuTest {
             public void annoncerMotTrouve(String nom) {}
 
             public void annoncerElimination(String nom) {}
+
+            public void finirJeu() {}
+            ;
         };
     }
 
