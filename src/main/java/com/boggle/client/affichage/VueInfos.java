@@ -7,17 +7,21 @@ public class VueInfos extends JPanel {
     private JLabel manchesLabel = new JLabel("Manches : 0");
     private JLabel pointsLabel = new JLabel("Points : 0");
     private JLabel statusLabel = new JLabel("Status : pause");
+    private JLabel nombreMotsLabel = new JLabel("Nombre de mots : 0/???");
 
     private int manchesTotal;
     private int manchesJouees;
     private int points = 0;
+    private int nombreMotsTotal;
+    private int nombreMotsTrouves = 0;
 
     public VueInfos(int manchesTotal, int manchesJouees) {
-        this.setLayout(new GridLayout(3, 1));
+        this.setLayout(new GridLayout(4, 1));
         this.setBorder(BorderFactory.createTitledBorder("Infos"));
         this.add(this.manchesLabel);
         this.add(this.pointsLabel);
         this.add(this.statusLabel);
+        this.add(this.nombreMotsLabel);
 
         this.manchesTotal = manchesTotal;
         this.manchesJouees = manchesJouees;
@@ -52,9 +56,26 @@ public class VueInfos extends JPanel {
 
     public void updateManches() {
         this.manchesJouees++;
+        this.nombreMotsTrouves = 0;
         this.manchesLabel.setText(String.format(
                 "Manches : %d/%s",
                 this.manchesJouees, this.manchesTotal != 0 ? Integer.toString(this.manchesTotal) : "?"));
+    }
+
+    public void updateMotsTrouves() {
+        this.nombreMotsLabel.setText(
+                String.format("Nombre de mots : %d/%d", this.nombreMotsTrouves, this.nombreMotsTotal));
+    }
+
+    public void ajouterMotTrouve() {
+        this.nombreMotsTrouves++;
+        this.updateMotsTrouves();
+    }
+
+    public void setNombreMotsTotal(int nombreMots) {
+        this.nombreMotsTrouves = 0;
+        this.nombreMotsTotal = nombreMots;
+        this.updateMotsTrouves();
     }
 
     public enum Status {

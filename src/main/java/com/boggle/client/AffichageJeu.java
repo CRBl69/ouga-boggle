@@ -15,7 +15,6 @@ import java.awt.*;
 import java.util.Arrays;
 import java.util.function.Consumer;
 import javax.swing.*;
-import javax.swing.text.DefaultCaret;
 
 /** Vue du jeu */
 public class AffichageJeu extends JFrame {
@@ -32,41 +31,6 @@ public class AffichageJeu extends JFrame {
     public VueChat chat = new VueChat();
 
     Consumer<Mot> action;
-
-    /** Vue pour les mots trouves */
-    class VueMots extends JPanel {
-        private JTextArea textArea;
-        private JScrollPane scrollPane;
-
-        /** Constructeur. */
-        public VueMots() {
-            super();
-            this.setLayout(new BorderLayout());
-            this.setPreferredSize(new Dimension(400, 400));
-            this.setBorder(BorderFactory.createTitledBorder("Chat"));
-            this.textArea = new JTextArea();
-            this.textArea.setLineWrap(true);
-            this.textArea.setWrapStyleWord(true);
-            this.textArea.setFont(new Font("sans", Font.PLAIN, 14));
-            this.textArea.setEditable(false);
-            this.scrollPane = new JScrollPane(this.textArea);
-            this.scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-            DefaultCaret caret = (DefaultCaret) this.textArea.getCaret();
-            caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
-            this.add(this.scrollPane, BorderLayout.CENTER);
-        }
-
-        /**
-         * Ajoute un mot a la liste de mots
-         *
-         * @param mot le mot a ajouter
-         */
-        public void ajouterChat(String message) {
-            // On ne peut pas utiliser .contains avec des String
-            this.textArea.append(message + "\n");
-            updateUI();
-        }
-    }
 
     /**
      * Constructeur.
@@ -187,6 +151,7 @@ public class AffichageJeu extends JFrame {
     public void ajouterMotVerifie(MotVerifie mot) {
         if (mot.isAccepte()) {
             infos.ajouterPoints(mot.getPoints());
+            infos.ajouterMotTrouve();
             chat.ajouterChat(String.format("Vous avez trouvé \"%s\" (+%dpts).", mot.getMot(), mot.getPoints()));
             jouerSonDeVictoire();
         } else {
@@ -268,5 +233,9 @@ public class AffichageJeu extends JFrame {
         infos.updateStatus(Status.FIN, elimine);
         minuteur.fin();
         ajouterChat("Fin de la partie. Victoire de " + gagnants + ".");
+    }
+
+    public void setMotsATrouver(int nombreMots) {
+        this.infos.setNombreMotsTotal(nombreMots);
     }
 }
