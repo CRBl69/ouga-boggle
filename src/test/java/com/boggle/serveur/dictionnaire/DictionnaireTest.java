@@ -15,7 +15,6 @@ public class DictionnaireTest {
         Dictionnaire.generer(Langue.FR);
         assertTrue(Dictionnaire.estUnMot("chapeau"));
         assertTrue(Dictionnaire.estUnMot("cheval"));
-        assertTrue(Dictionnaire.estUnMot("a"));
         assertTrue(Dictionnaire.estUnMot("des"));
         assertTrue(Dictionnaire.estUnMot("desabonnaient"));
         assertFalse(Dictionnaire.estUnMot("desabonnaien"));

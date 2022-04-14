@@ -64,7 +64,7 @@ public class Dictionnaire {
             BufferedReader lecteur = new BufferedReader(new InputStreamReader(flux));
             String ligne;
             while ((ligne = lecteur.readLine()) != null) {
-                mots.add(ligne.toLowerCase());
+                if (ligne.length() >= 3) mots.add(ligne.toLowerCase());
             }
             lecteur.close();
         } catch (FileNotFoundException e) {

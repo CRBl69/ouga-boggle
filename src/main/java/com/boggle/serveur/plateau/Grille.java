@@ -114,6 +114,7 @@ public class Grille {
             int b = coord[1];
 
             if (a < 0 || b < 0 || a >= grille.length || b >= grille[0].length) continue;
+            if (liste.contains(grille[a][b])) continue;
 
             if (this.grille[a][b].lettre.charAt(0) == mot.charAt(0)) {
                 liste.add(grille[a][b]);
