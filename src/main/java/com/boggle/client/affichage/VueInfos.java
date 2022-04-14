@@ -36,6 +36,12 @@ public class VueInfos extends JPanel {
         this.pointsLabel.setText("Points : " + Integer.toString(this.points));
     }
 
+    public void setPoints(int points) {
+        this.points = 0;
+        this.ajouterPoints(points);
+    }
+
+
     public void updateStatus(Status status, boolean desactive) {
         switch (status) {
             case MANCHE_EN_COURS:
@@ -82,5 +88,9 @@ public class VueInfos extends JPanel {
         MANCHE_EN_COURS,
         PAUSE,
         FIN,
+    }
+
+    public void setManche(int nombreManche) {
+        this.manchesJouees = nombreManche - 1;
     }
 }

@@ -214,6 +214,11 @@ public class Client {
                             PauseClient pause = gson.fromJson(donnees, PauseClient.class);
                             affichageJeu.ajouterPause(pause);
                             break;
+                        case "miseAJourPoints":
+                            ReprendrePause majp = gson.fromJson(donnees, ReprendrePause.class);
+                            affichageJeu.setPoints(majp.getPoints());
+                            affichageJeu.setManche(majp.getNombreManche());
+                            break;
                         default:
                             logger.warn(message + " n'est pas reconnu");
                             break;

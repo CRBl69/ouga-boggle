@@ -11,6 +11,7 @@ import com.boggle.util.Logger;
 import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -44,16 +45,25 @@ public class Serveur implements ServeurInterface {
 
     public void lancerPartie(ConfigurationJeu c) {
         configurationJeu = c;
-        jeu = switch (c.modeDeJeu) {
-            case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
-            default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
-        };
-        jeu.demarrerJeu();
+        if(configurationJeu.sauvegarde == null || configurationJeu.sauvegarde.isEmpty()) {
+            System.out.println("On crée une nouvelle partie");
+            jeu = switch (c.modeDeJeu) {
+                case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+                default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+            };
+        } else {
+            System.out.println("On reprend une partie déjà commencée");
+            reprendre(configurationJeu.sauvegarde);
+        }
     }
 
     private void sauvegarder() {
         // TODO: checker que le dossier de sauvegardes existe
         ObjectOutputStream obj;
+        File file = new File(Defaults.getDossierSauvegardes());
+        if(!file.exists()) {
+            file.mkdirs();
+        }
         try {
             obj = new ObjectOutputStream(new FileOutputStream(String.format("%s/%s.ser", Defaults.getDossierSauvegardes(), Instant.now())));
             jeu.removeServeur();
@@ -135,7 +145,7 @@ public class Serveur implements ServeurInterface {
         }
 
         if (motDePasse.equals(this.motDePasse)) {
-            if (jeu != null && jeu.estCommence()) {
+            if (jeu != null && jeu.estCommence() && !jeu.estEnPause()) {
                 if (jeu.getJoueurs().stream().anyMatch(j -> j.nom.equals(nom))) {
                     Continue continueMessage = new Continue(
                             lettresToString(jeu.getMancheCourante().getGrille().getGrille()),
@@ -211,6 +221,13 @@ public class Serveur implements ServeurInterface {
 
     public void annoncerPause(String nom, boolean pause) {
         annoncer("pause " + gson.toJson(new PauseClient(nom, pause, (int) (clients.size() / 2 - clients.stream().filter(c -> c.joueur.demandePause).count()))));
+    }
+
+    public void annoncerMiseAJourPoints() {
+        for(Client c : clients) {
+            ReprendrePause miseAJourPoints = new ReprendrePause(jeu.getPoints().getOrDefault(new Joueur(c.joueur.nom), 0), jeu.getNombreManche());
+            c.envoyerMessage("miseAJourPoints " + gson.toJson(miseAJourPoints));
+        }
     }
 
     /**
@@ -303,13 +320,17 @@ public class Serveur implements ServeurInterface {
                             client.joueur.estPret = status.getStatus();
                             if (tousLesClientsSontPrets() && configurationJeu != null) {
                                 lancerPartie(configurationJeu);
+                                if(!jeu.estCommence()) {
+                                    jeu.demarrerJeu();
+                                }
                                 clients.forEach(c -> {
                                     jeu.ajouterJoueur(c.joueur);
                                 });
                                 if(jeu.estEnPause()) {
-                                    annoncerDebutPartie();
                                     if(jeu.getMancheCourante().getMinuteur().getSec() > 0) {
                                         jeu.reprendre();
+                                        annoncerDebutPartie();
+                                        annoncerMiseAJourPoints();
                                         annoncerDebutManche();
                                     } else {
                                         jeu.reprendre();

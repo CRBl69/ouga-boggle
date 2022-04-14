@@ -3,7 +3,11 @@ package com.boggle.client;
 import com.boggle.serveur.jeu.Jeu.Modes;
 import com.boggle.serveur.jeu.Langue;
 import com.boggle.serveur.messages.ConfigurationJeu;
+import com.boggle.util.Defaults;
+
 import java.awt.*;
+import java.io.File;
+
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -13,12 +17,15 @@ import javax.swing.text.StyleContext;
 public class AffichageStatus extends JFrame {
     private boolean pret = false;
     private JButton bouton;
+    private JButton choixFichier = new JButton("Choisir un fichier");
     private JLabel nPrets = new JLabel();
     private JLabel nJoueurs = new JLabel();
     private JLabel configValidee = new JLabel();
     private JTextPane joueurs = new JTextPane();
     private Client client;
     private boolean configValideeState = false;
+    private JFileChooser fc = new JFileChooser();
+    private String sauvegarde;
 
     public AffichageStatus(Client c) {
         client = c;
@@ -69,6 +76,19 @@ public class AffichageStatus extends JFrame {
 
         config.add(modeGroupe);
 
+        fc.setCurrentDirectory(new File(Defaults.getDossierSauvegardes()));
+        choixFichier.addActionListener(e -> {
+            if(e.getSource() == choixFichier) {
+                int returnVal = fc.showOpenDialog(this);
+                if (returnVal == JFileChooser.APPROVE_OPTION) {
+                    File file = fc.getSelectedFile();
+                    sauvegarde = fc.getSelectedFile().getAbsolutePath();
+                }
+            }
+        });
+        config.add(choixFichier);
+
+
         JButton buttonSettings = new JButton("Valider");
         buttonSettings.addActionListener(a -> {
             var langue =
@@ -91,7 +111,8 @@ public class AffichageStatus extends JFrame {
                         Integer.parseInt(((JTextField) ((JPanel) config.getComponent(2)).getComponent(1)).getText()),
                         Integer.parseInt(((JTextField) ((JPanel) config.getComponent(3)).getComponent(1)).getText()),
                         langue,
-                        modeDeJeu);
+                        modeDeJeu,
+                        sauvegarde);
                 c.envoyerConfiguration(configuration);
                 configValideeState = true;
             } catch (Exception ex) {

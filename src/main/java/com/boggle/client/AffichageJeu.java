@@ -27,7 +27,7 @@ public class AffichageJeu extends JFrame {
     private Client client;
 
     private VueEntreeTexte entreeTexte;
-    private VueGrille grille = new VueGrille(entreeTexte, mot -> serveur.envoyerMotSouris(mot));
+    private VueGrille grille;
     private VueMinuteur minuteur = new VueMinuteur();
     private VueInfos infos;
     public VueChat chat = new VueChat();
@@ -49,6 +49,8 @@ public class AffichageJeu extends JFrame {
         this.serveur = serveur;
 
         entreeTexte = new VueEntreeTexte(this, serveur);
+
+        grille = new VueGrille(entreeTexte, mot -> serveur.envoyerMotSouris(mot));
 
         this.debutJeu = debutJeu;
 
@@ -277,5 +279,13 @@ public class AffichageJeu extends JFrame {
 
     public void setMotsATrouver(int nombreMots) {
         this.infos.setNombreMotsTotal(nombreMots);
+    }
+
+    public void setPoints(int points) {
+        this.infos.setPoints(points);
+    }
+
+    public void setManche(int nombreManche) {
+        this.infos.setManche(nombreManche);
     }
 }

@@ -11,6 +11,7 @@ public class ConfigurationJeu {
     public final int tailleGrilleV;
     public final Langue langue;
     public final Modes modeDeJeu;
+    public final String sauvegarde;
 
     /**
      *
@@ -21,7 +22,7 @@ public class ConfigurationJeu {
      * @param langue langue du la grille
      */
     public ConfigurationJeu(
-            int nbManches, int timer, int tailleGrilleH, int tailleGrilleV, Langue langue, Modes modeDeJeu) {
+            int nbManches, int timer, int tailleGrilleH, int tailleGrilleV, Langue langue, Modes modeDeJeu, String sauvegarde) {
         this.modeDeJeu = modeDeJeu;
         if (modeDeJeu == Modes.BATTLE_ROYALE) {
             this.nbManches = 0;
@@ -32,5 +33,6 @@ public class ConfigurationJeu {
         this.tailleGrilleH = tailleGrilleH;
         this.tailleGrilleV = tailleGrilleV;
         this.langue = langue;
+        this.sauvegarde = sauvegarde;
     }
 }

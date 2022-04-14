@@ -18,27 +18,7 @@ public class Normal extends Jeu {
     }
 
     public void nouvelleManche() {
+        System.out.println("Nouvelle manche");
         demarrerManche(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue, this));
-        if (dureeManche != 0) {
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        Thread.sleep(dureeManche * 1000);
-                        finirManche();
-                        if (!estFini()) {
-                            Thread.sleep(10000);
-                            nouvelleManche();
-                        } else {
-                            finirJeu();
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            t.start();
-        } else {
-            // TODO: implémenter une manche sans minuteur (par vote ?)
-        }
     }
 }
