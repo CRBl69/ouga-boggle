@@ -185,6 +185,8 @@ public class Client {
                         case "debutManche":
                             DebutManche debutManche = gson.fromJson(donnees, DebutManche.class);
                             affichageJeu.ajouterChat("Début de la prochaine manche.");
+                            affichageJeu.ajouterChat(String.format("%d mots a trouver.", debutManche.getNMots()));
+                            affichageJeu.setMotsATrouver(debutManche.getNMots());
                             affichageJeu.initManche(debutManche);
                             break;
                         case "finManche":

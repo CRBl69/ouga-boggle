@@ -8,6 +8,7 @@ public class DebutManche {
     private String[][] tableau;
     private int longueurManche;
     private HashSet<Joueur> joueurs;
+    private int nMots;
 
     public DebutManche(Grille grille, int lm, HashSet<Joueur> joueurs) {
         tableau = new String[grille.getLignes()][grille.getColonnes()];
@@ -18,6 +19,7 @@ public class DebutManche {
         }
         longueurManche = lm;
         this.joueurs = joueurs;
+        nMots = grille.getNMots();
     }
 
     public DebutManche(String[][] grille, int lm) {
@@ -35,5 +37,9 @@ public class DebutManche {
 
     public int getLongueurManche() {
         return longueurManche;
+    }
+
+    public int getNMots() {
+        return nMots;
     }
 }
