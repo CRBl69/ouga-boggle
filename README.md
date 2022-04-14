@@ -29,13 +29,13 @@ Voici une liste des fonctionnalités clefs de notre version :
 Lancer un serveur :
 
 ```bash
-./mvnw exec:java -Dexec.mainClass=com.boggle.ouga.App -Dexec.args="serveur"
+./mvnw exec:java -Dexec.args="serveur"
 ```
 
 Lancer un client :
 
 ```bash
-./mvnw exec:java -Dexec.mainClass=com.boggle.ouga.App -Dexec.args="client"
+./mvnw exec:java -Dexec.args="client"
 ```
 
 ## Développeurs
