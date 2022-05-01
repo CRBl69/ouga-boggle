@@ -1,9 +1,8 @@
 package com.boggle.serveur.jeu;
 
+import com.boggle.util.Logger;
 import java.io.Serializable;
 import java.util.Calendar;
-
-import com.boggle.util.Logger;
 
 public class Minuteur implements Serializable {
     private Calendar tempsFin;
@@ -58,7 +57,7 @@ public class Minuteur implements Serializable {
                     logger.info("Minuteur écoulé");
                     jeu.finirManche();
                     jeu.finDeManche();
-                    if(!jeu.estFini()) {
+                    if (!jeu.estFini()) {
                         logger.info("Attente de fin de manche");
                         Thread.sleep(1000 * 10);
                         logger.info("Appel à nouvelleManche");

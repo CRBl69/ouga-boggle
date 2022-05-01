@@ -2,9 +2,7 @@ package com.boggle.client;
 
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationServeur;
-
 import java.awt.*;
-
 import javax.swing.*;
 
 /**

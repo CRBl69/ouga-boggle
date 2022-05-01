@@ -22,7 +22,13 @@ public class ConfigurationJeu {
      * @param langue langue du la grille
      */
     public ConfigurationJeu(
-            int nbManches, int timer, int tailleGrilleH, int tailleGrilleV, Langue langue, Modes modeDeJeu, String sauvegarde) {
+            int nbManches,
+            int timer,
+            int tailleGrilleH,
+            int tailleGrilleV,
+            Langue langue,
+            Modes modeDeJeu,
+            String sauvegarde) {
         this.modeDeJeu = modeDeJeu;
         if (modeDeJeu == Modes.BATTLE_ROYALE) {
             this.nbManches = 0;

@@ -3,7 +3,6 @@ package com.boggle.serveur.jeu;
 import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;

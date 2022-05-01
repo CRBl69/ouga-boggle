@@ -6,7 +6,8 @@ import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
 import com.boggle.util.Defaults;
-
+import com.google.gson.Gson;
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Serializable;
@@ -16,8 +17,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-
-import com.google.gson.Gson;
 
 /** Fonctions relatives à la partie. */
 public abstract class Jeu implements Serializable {
@@ -101,6 +100,7 @@ public abstract class Jeu implements Serializable {
      * Fini le jeu.
      */
     protected void finirJeu() {
+        this.sauvegarderHistorique();
         serveur.annoncerFinPartie();
         serveur.finirJeu();
     }
@@ -257,9 +257,13 @@ public abstract class Jeu implements Serializable {
 
         String json = gson.toJson(h);
 
+        File file = new File(Defaults.getDossierHistorique());
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+
         try {
-            // TODO: verifier que le dossier existe (et sinon le creer)
-            FileWriter fw = new FileWriter(Defaults.getDossierHistorique() + "/" + Instant.EPOCH + ".json");
+            FileWriter fw = new FileWriter(Defaults.getDossierHistorique() + "/" + Instant.now() + ".json");
             fw.write(json);
             fw.close();
         } catch (IOException e) {

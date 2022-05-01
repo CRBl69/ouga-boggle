@@ -18,7 +18,6 @@ public class Normal extends Jeu {
     }
 
     public void nouvelleManche() {
-        System.out.println("Nouvelle manche");
         demarrerManche(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue, this));
     }
 }

@@ -45,12 +45,11 @@ public class Serveur implements ServeurInterface {
 
     public void lancerPartie(ConfigurationJeu c) {
         configurationJeu = c;
-        if(configurationJeu.sauvegarde == null || configurationJeu.sauvegarde.isEmpty()) {
+        if (configurationJeu.sauvegarde == null || configurationJeu.sauvegarde.isEmpty()) {
             System.out.println("On crée une nouvelle partie");
             jeu = switch (c.modeDeJeu) {
                 case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
-                default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
-            };
+                default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);};
         } else {
             System.out.println("On reprend une partie déjà commencée");
             reprendre(configurationJeu.sauvegarde);
@@ -61,11 +60,12 @@ public class Serveur implements ServeurInterface {
         // TODO: checker que le dossier de sauvegardes existe
         ObjectOutputStream obj;
         File file = new File(Defaults.getDossierSauvegardes());
-        if(!file.exists()) {
+        if (!file.exists()) {
             file.mkdirs();
         }
         try {
-            obj = new ObjectOutputStream(new FileOutputStream(String.format("%s/%s.ser", Defaults.getDossierSauvegardes(), Instant.now())));
+            obj = new ObjectOutputStream(
+                    new FileOutputStream(String.format("%s/%s.ser", Defaults.getDossierSauvegardes(), Instant.now())));
             jeu.removeServeur();
             obj.writeObject(jeu);
             obj.close();
@@ -220,12 +220,15 @@ public class Serveur implements ServeurInterface {
     }
 
     public void annoncerPause(String nom, boolean pause) {
-        annoncer("pause " + gson.toJson(new PauseClient(nom, pause, (int) (clients.size() / 2 - clients.stream().filter(c -> c.joueur.demandePause).count()))));
+        annoncer("pause "
+                + gson.toJson(new PauseClient(nom, pause, (int) (clients.size() / 2
+                        - clients.stream().filter(c -> c.joueur.demandePause).count()))));
     }
 
     public void annoncerMiseAJourPoints() {
-        for(Client c : clients) {
-            ReprendrePause miseAJourPoints = new ReprendrePause(jeu.getPoints().getOrDefault(new Joueur(c.joueur.nom), 0), jeu.getNombreManche());
+        for (Client c : clients) {
+            ReprendrePause miseAJourPoints = new ReprendrePause(
+                    jeu.getPoints().getOrDefault(new Joueur(c.joueur.nom), 0), jeu.getNombreManche());
             c.envoyerMessage("miseAJourPoints " + gson.toJson(miseAJourPoints));
         }
     }
@@ -320,14 +323,14 @@ public class Serveur implements ServeurInterface {
                             client.joueur.estPret = status.getStatus();
                             if (tousLesClientsSontPrets() && configurationJeu != null) {
                                 lancerPartie(configurationJeu);
-                                if(!jeu.estCommence()) {
+                                if (!jeu.estCommence()) {
                                     jeu.demarrerJeu();
                                 }
                                 clients.forEach(c -> {
                                     jeu.ajouterJoueur(c.joueur);
                                 });
-                                if(jeu.estEnPause()) {
-                                    if(jeu.getMancheCourante().getMinuteur().getSec() > 0) {
+                                if (jeu.estEnPause()) {
+                                    if (jeu.getMancheCourante().getMinuteur().getSec() > 0) {
                                         jeu.reprendre();
                                         annoncerDebutPartie();
                                         annoncerMiseAJourPoints();
@@ -364,7 +367,7 @@ public class Serveur implements ServeurInterface {
                             Pause pause = gson.fromJson(donnees, Pause.class);
                             client.joueur.demandePause = pause.isPause();
                             annoncerPause(client.joueur.nom, pause.isPause());
-                            if(moitieDemandePause()) {
+                            if (moitieDemandePause()) {
                                 jeu.mettreEnPause();
                                 clients.forEach(c -> c.arreter());
                                 clients.clear();

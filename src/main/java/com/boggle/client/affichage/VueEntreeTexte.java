@@ -1,10 +1,9 @@
 package com.boggle.client.affichage;
 
 import com.boggle.client.AffichageJeu;
+import com.boggle.client.Client.Serveur;
 import java.awt.*;
 import javax.swing.*;
-
-import com.boggle.client.Client.Serveur;
 
 public class VueEntreeTexte extends JTextField {
     public VueEntreeTexte(AffichageJeu affichageJeu, Serveur serveur) {
@@ -16,9 +15,9 @@ public class VueEntreeTexte extends JTextField {
             String mot = ac.getActionCommand();
 
             if (mot.length() > 0) {
-                if(mot.startsWith("/")) {
+                if (mot.startsWith("/")) {
                     String commande = mot.substring(1);
-                    switch(commande) {
+                    switch (commande) {
                         case "pause":
                             serveur.pause(true);
                             break;

@@ -157,10 +157,14 @@ public class AffichageJeu extends JFrame {
      * @param mot le mot trouvé
      */
     public void ajouterPause(PauseClient pc) {
-        if(pc.isPause()) {
-            chat.ajouterChat(String.format("%s a demandé la pause, il reste %d demandes avant que le serveur démare une pause.", pc.getAuteur(), pc.getRestants()));
+        if (pc.isPause()) {
+            chat.ajouterChat(String.format(
+                    "%s a demandé la pause, il reste %d demandes avant que le serveur démare une pause.",
+                    pc.getAuteur(), pc.getRestants()));
         } else {
-            chat.ajouterChat(String.format("%s a annulé sa demande de pause, il reste %d demandes avant que le serveur démare une pause.", pc.getAuteur(), pc.getRestants()));
+            chat.ajouterChat(String.format(
+                    "%s a annulé sa demande de pause, il reste %d demandes avant que le serveur démare une pause.",
+                    pc.getAuteur(), pc.getRestants()));
         }
     }
 

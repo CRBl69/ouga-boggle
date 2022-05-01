@@ -2,8 +2,8 @@ package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.jeu.Langue;
-import java.util.HashSet;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.LinkedList;
 
 /** Plateau du jeu contenant les lettres. */

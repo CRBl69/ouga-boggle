@@ -1,7 +1,6 @@
 package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
-
 import java.io.Serializable;
 import java.util.Calendar;
 import java.util.LinkedList;

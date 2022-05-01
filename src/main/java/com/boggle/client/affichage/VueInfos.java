@@ -41,7 +41,6 @@ public class VueInfos extends JPanel {
         this.ajouterPoints(points);
     }
 
-
     public void updateStatus(Status status, boolean desactive) {
         switch (status) {
             case MANCHE_EN_COURS:

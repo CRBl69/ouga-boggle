@@ -4,10 +4,8 @@ import com.boggle.serveur.jeu.Jeu.Modes;
 import com.boggle.serveur.jeu.Langue;
 import com.boggle.serveur.messages.ConfigurationJeu;
 import com.boggle.util.Defaults;
-
 import java.awt.*;
 import java.io.File;
-
 import javax.swing.*;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
@@ -78,7 +76,7 @@ public class AffichageStatus extends JFrame {
 
         fc.setCurrentDirectory(new File(Defaults.getDossierSauvegardes()));
         choixFichier.addActionListener(e -> {
-            if(e.getSource() == choixFichier) {
+            if (e.getSource() == choixFichier) {
                 int returnVal = fc.showOpenDialog(this);
                 if (returnVal == JFileChooser.APPROVE_OPTION) {
                     File file = fc.getSelectedFile();
@@ -87,7 +85,6 @@ public class AffichageStatus extends JFrame {
             }
         });
         config.add(choixFichier);
-
 
         JButton buttonSettings = new JButton("Valider");
         buttonSettings.addActionListener(a -> {

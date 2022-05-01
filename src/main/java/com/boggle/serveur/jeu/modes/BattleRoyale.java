@@ -4,7 +4,6 @@ import com.boggle.serveur.ServeurInterface;
 import com.boggle.serveur.jeu.Joueur;
 import com.boggle.serveur.jeu.Langue;
 import com.boggle.serveur.jeu.Manche;
-
 import java.util.ArrayList;
 
 public class BattleRoyale extends Normal {

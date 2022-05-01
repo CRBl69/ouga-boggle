@@ -99,7 +99,8 @@ public class Client {
     public void envoyerStatus(boolean status) {
         try {
             dos.writeUTF(String.format("status {\"status\": %b}", status));
-        } catch (IOException e) {}
+        } catch (IOException e) {
+        }
     }
 
     /** Envoie une configuration au serveur. */
