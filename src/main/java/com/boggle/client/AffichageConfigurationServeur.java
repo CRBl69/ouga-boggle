@@ -10,7 +10,6 @@ import javax.swing.*;
  * des paramètres et initialisation de la configuration.
  */
 public class AffichageConfigurationServeur extends JFrame {
-
     public AffichageConfigurationServeur() {
 
         setTitle("OuGa-BoGgLe - Configuration de la partie");

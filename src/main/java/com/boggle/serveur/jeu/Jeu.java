@@ -1,9 +1,17 @@
 package com.boggle.serveur.jeu;
 
 import com.boggle.serveur.ServeurInterface;
+import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.plateau.Grille;
 import com.boggle.serveur.plateau.Lettre;
 import com.boggle.serveur.plateau.Mot;
+import com.boggle.util.Defaults;
+import com.google.gson.Gson;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.Serializable;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,7 +19,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /** Fonctions relatives à la partie. */
-public abstract class Jeu {
+public abstract class Jeu implements Serializable {
     protected HashSet<Joueur> joueurs;
     protected ArrayList<Manche> manches;
     protected int nombreMancheTotal;
@@ -21,6 +29,7 @@ public abstract class Jeu {
     protected Langue langue;
     protected ServeurInterface serveur;
     protected boolean mancheEnCours;
+    private boolean estEnPause = true;
 
     public Jeu(
             int nombreManche,
@@ -58,8 +67,16 @@ public abstract class Jeu {
      * Indique si le jeu est commencé.
      * @return true si le jeu est en cours, false sinon
      */
-    public boolean estCommence() {
+    public final boolean estCommence() {
         return !manches.isEmpty();
+    }
+
+    public final void removeServeur() {
+        this.serveur = null;
+    }
+
+    public final void setServeur(ServeurInterface serveur) {
+        this.serveur = serveur;
     }
 
     /**
@@ -74,6 +91,7 @@ public abstract class Jeu {
      * Démarre le jeu et lance la première manche.
      */
     public void demarrerJeu() {
+        this.estEnPause = false;
         serveur.annoncerDebutPartie();
         nouvelleManche();
     }
@@ -82,6 +100,7 @@ public abstract class Jeu {
      * Fini le jeu.
      */
     protected void finirJeu() {
+        this.sauvegarderHistorique();
         serveur.annoncerFinPartie();
         serveur.finirJeu();
     }
@@ -90,7 +109,7 @@ public abstract class Jeu {
      * Commence la manche passée en parametre.
      * @param m la manche à commencer
      */
-    protected void demarrerManche(Manche m) {
+    protected final void demarrerManche(Manche m) {
         mancheEnCours = true;
         manches.add(m);
         serveur.annoncerDebutManche();
@@ -99,7 +118,7 @@ public abstract class Jeu {
     /**
      * Fini la dernière manche commencée.
      */
-    protected void finirManche() {
+    protected final void finirManche() {
         mancheEnCours = false;
         serveur.annoncerFinManche();
     }
@@ -108,6 +127,11 @@ public abstract class Jeu {
      * Démarre une nouvelle manche.
      */
     public abstract void nouvelleManche();
+
+    /**
+     * Fonction qui s'execute à la fin de la manche.
+     */
+    public void finDeManche() {}
 
     /**
      * Calcule les joueurs gagnants.
@@ -133,7 +157,7 @@ public abstract class Jeu {
      * Ajoute un joueur à la partie.
      * @param joueur le joueur à ajouter
      */
-    public void ajouterJoueur(Joueur joueur) {
+    public final void ajouterJoueur(Joueur joueur) {
         joueurs.add(joueur);
     }
 
@@ -141,7 +165,7 @@ public abstract class Jeu {
      * Enleve un joueur à de partie.
      * @param joueur le joueur à enlever
      */
-    public boolean enleverJoueur(Joueur joueur) {
+    public final boolean enleverJoueur(Joueur joueur) {
         return joueurs.remove(joueur);
     }
 
@@ -149,14 +173,14 @@ public abstract class Jeu {
      * Retourne tous les joueurs.
      * @return tous les joueurs
      */
-    public HashSet<Joueur> getJoueurs() {
+    public final HashSet<Joueur> getJoueurs() {
         return joueurs;
     }
 
     /**
      * @return la manche courante
      */
-    public Manche getMancheCourante() {
+    public final Manche getMancheCourante() {
         return manches.get(manches.size() - 1);
     }
 
@@ -197,11 +221,11 @@ public abstract class Jeu {
         return pointsParJoueur;
     }
 
-    public Grille getGrille() {
+    public final Grille getGrille() {
         return getMancheCourante().getGrille();
     }
 
-    public HashMap<Joueur, HashSet<Mot>> getListeMots() {
+    public final HashMap<Joueur, HashSet<Mot>> getListeMots() {
         return getMancheCourante().getListeMots();
     }
 
@@ -209,7 +233,7 @@ public abstract class Jeu {
      * Indique si une manche est en cours.
      * @return true si une manche est en cours, false sinon
      */
-    public boolean mancheEnCours() {
+    public final boolean mancheEnCours() {
         return mancheEnCours;
     }
 
@@ -218,12 +242,47 @@ public abstract class Jeu {
      * La manche courante est prise en compte.
      * @return le nombre de manches jouées
      */
-    public int getNombreManche() {
+    public final int getNombreManche() {
         return manches.size();
     }
 
     public enum Modes {
         NORMAL,
         BATTLE_ROYALE,
+    }
+
+    public final void sauvegarderHistorique() {
+        Historique h = new Historique(manches);
+        Gson gson = new Gson();
+
+        String json = gson.toJson(h);
+
+        File file = new File(Defaults.getDossierHistorique());
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+
+        try {
+            FileWriter fw = new FileWriter(Defaults.getDossierHistorique() + "/" + Instant.now() + ".json");
+            fw.write(json);
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public final void mettreEnPause() {
+        this.estEnPause = true;
+        getMancheCourante().getMinuteur().mettreEnPause();
+    }
+
+    public final void reprendre() {
+        this.estEnPause = false;
+        Dictionnaire.generer(langue);
+        getMancheCourante().getMinuteur().reprendre();
+    }
+
+    public final boolean estEnPause() {
+        return this.estEnPause;
     }
 }

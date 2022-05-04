@@ -1,8 +1,9 @@
 package com.boggle.util;
 
+import java.io.Serializable;
 import java.util.HashMap;
 
-public class Logger {
+public class Logger implements Serializable {
     public static final int INFO = 30;
     public static final int WARN = 20;
     public static final int ERROR = 10;

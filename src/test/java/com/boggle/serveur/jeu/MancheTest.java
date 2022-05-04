@@ -14,7 +14,7 @@ public class MancheTest {
 
     @Before
     public void setUp() {
-        manche = new Manche(4, 4, 60, Langue.FR);
+        manche = new Manche(4, 4, 60, Langue.FR, null);
 
         var g = manche.getGrille().getGrille();
 

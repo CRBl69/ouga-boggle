@@ -1,5 +1,7 @@
 package com.boggle.serveur.plateau;
 
-public interface GenerateurLettre {
+import java.io.Serializable;
+
+public interface GenerateurLettre extends Serializable {
     public String prendreLettreAleatoire();
 }

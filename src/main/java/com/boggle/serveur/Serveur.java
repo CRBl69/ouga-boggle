@@ -6,13 +6,21 @@ import com.boggle.serveur.jeu.Joueur;
 import com.boggle.serveur.jeu.modes.*;
 import com.boggle.serveur.messages.*;
 import com.boggle.serveur.plateau.Lettre;
+import com.boggle.util.Defaults;
 import com.boggle.util.Logger;
 import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -37,10 +45,52 @@ public class Serveur implements ServeurInterface {
 
     public void lancerPartie(ConfigurationJeu c) {
         configurationJeu = c;
-        jeu = switch (c.modeDeJeu) {
-            case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
-            default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);};
-        jeu.demarrerJeu();
+        if (configurationJeu.sauvegarde == null || configurationJeu.sauvegarde.isEmpty()) {
+            System.out.println("On crée une nouvelle partie");
+            jeu = switch (c.modeDeJeu) {
+                case BATTLE_ROYALE -> new BattleRoyale(c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);
+                default -> new Normal(c.nbManches, c.timer, c.tailleGrilleV, c.tailleGrilleH, c.langue, this);};
+        } else {
+            System.out.println("On reprend une partie déjà commencée");
+            reprendre(configurationJeu.sauvegarde);
+        }
+    }
+
+    private void sauvegarder() {
+        // TODO: checker que le dossier de sauvegardes existe
+        ObjectOutputStream obj;
+        File file = new File(Defaults.getDossierSauvegardes());
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+        try {
+            obj = new ObjectOutputStream(
+                    new FileOutputStream(String.format("%s/%s.ser", Defaults.getDossierSauvegardes(), Instant.now())));
+            jeu.removeServeur();
+            obj.writeObject(jeu);
+            obj.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void reprendre(String sauvegarde) {
+        // TODO: s'occuper du timer
+        ObjectInputStream obj;
+        try {
+            obj = new ObjectInputStream(new FileInputStream(sauvegarde));
+            jeu = (Jeu) obj.readObject();
+            jeu.setServeur(this);
+            obj.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     /** Démarre le serveur. */
@@ -95,7 +145,7 @@ public class Serveur implements ServeurInterface {
         }
 
         if (motDePasse.equals(this.motDePasse)) {
-            if (jeu != null && jeu.estCommence()) {
+            if (jeu != null && jeu.estCommence() && !jeu.estEnPause()) {
                 if (jeu.getJoueurs().stream().anyMatch(j -> j.nom.equals(nom))) {
                     Continue continueMessage = new Continue(
                             lettresToString(jeu.getMancheCourante().getGrille().getGrille()),
@@ -167,6 +217,20 @@ public class Serveur implements ServeurInterface {
 
     public void annoncerElimination(String nom) {
         annoncer("elimination " + nom);
+    }
+
+    public void annoncerPause(String nom, boolean pause) {
+        annoncer("pause "
+                + gson.toJson(new PauseClient(nom, pause, (int) (clients.size() / 2
+                        - clients.stream().filter(c -> c.joueur.demandePause).count()))));
+    }
+
+    public void annoncerMiseAJourPoints() {
+        for (Client c : clients) {
+            ReprendrePause miseAJourPoints = new ReprendrePause(
+                    jeu.getPoints().getOrDefault(new Joueur(c.joueur.nom), 0), jeu.getNombreManche());
+            c.envoyerMessage("miseAJourPoints " + gson.toJson(miseAJourPoints));
+        }
     }
 
     /**
@@ -259,9 +323,22 @@ public class Serveur implements ServeurInterface {
                             client.joueur.estPret = status.getStatus();
                             if (tousLesClientsSontPrets() && configurationJeu != null) {
                                 lancerPartie(configurationJeu);
+                                if (!jeu.estCommence()) {
+                                    jeu.demarrerJeu();
+                                }
                                 clients.forEach(c -> {
                                     jeu.ajouterJoueur(c.joueur);
                                 });
+                                if (jeu.estEnPause()) {
+                                    if (jeu.getMancheCourante().getMinuteur().getSec() > 0) {
+                                        jeu.reprendre();
+                                        annoncerDebutPartie();
+                                        annoncerMiseAJourPoints();
+                                        annoncerDebutManche();
+                                    } else {
+                                        jeu.reprendre();
+                                    }
+                                }
                             }
                             break;
                         case "motSouris":
@@ -286,7 +363,17 @@ public class Serveur implements ServeurInterface {
                                 });
                             }
                             break;
-                        case "continue":
+                        case "pause":
+                            Pause pause = gson.fromJson(donnees, Pause.class);
+                            client.joueur.demandePause = pause.isPause();
+                            annoncerPause(client.joueur.nom, pause.isPause());
+                            if (moitieDemandePause()) {
+                                jeu.mettreEnPause();
+                                clients.forEach(c -> c.arreter());
+                                clients.clear();
+                                sauvegarder();
+                                System.exit(0);
+                            }
                             break;
                         case "stop":
                             exit = true;
@@ -361,6 +448,10 @@ public class Serveur implements ServeurInterface {
 
     private boolean tousLesClientsSontPrets() {
         return clients.stream().allMatch(c -> c.joueur.estPret);
+    }
+
+    private boolean moitieDemandePause() {
+        return clients.stream().filter(c -> c.joueur.demandePause).count() > clients.size() / 2;
     }
 
     public void stop() {

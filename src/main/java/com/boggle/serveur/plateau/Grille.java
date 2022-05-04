@@ -2,11 +2,12 @@ package com.boggle.serveur.plateau;
 
 import com.boggle.serveur.dictionnaire.Dictionnaire;
 import com.boggle.serveur.jeu.Langue;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.LinkedList;
 
 /** Plateau du jeu contenant les lettres. */
-public class Grille {
+public class Grille implements Serializable {
     private Lettre[][] grille;
     private final GenerateurLettre langue;
     private final int colonnes;

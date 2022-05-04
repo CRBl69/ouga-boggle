@@ -10,6 +10,7 @@ import com.boggle.serveur.messages.FinManche;
 import com.boggle.serveur.messages.FinPartie;
 import com.boggle.serveur.messages.MotTrouve;
 import com.boggle.serveur.messages.MotVerifie;
+import com.boggle.serveur.messages.PauseClient;
 import com.boggle.serveur.plateau.*;
 import java.awt.*;
 import java.util.Arrays;
@@ -25,8 +26,8 @@ public class AffichageJeu extends JFrame {
     private boolean elimine = false;
     private Client client;
 
-    private VueEntreeTexte entreeTexte = new VueEntreeTexte(this);
-    private VueGrille grille = new VueGrille(entreeTexte, mot -> serveur.envoyerMotSouris(mot));
+    private VueEntreeTexte entreeTexte;
+    private VueGrille grille;
     private VueMinuteur minuteur = new VueMinuteur();
     private VueInfos infos;
     public VueChat chat = new VueChat();
@@ -46,6 +47,10 @@ public class AffichageJeu extends JFrame {
         setDefaultCloseOperation(EXIT_ON_CLOSE);
 
         this.serveur = serveur;
+
+        entreeTexte = new VueEntreeTexte(this, serveur);
+
+        grille = new VueGrille(entreeTexte, mot -> serveur.envoyerMotSouris(mot));
 
         this.debutJeu = debutJeu;
 
@@ -144,6 +149,23 @@ public class AffichageJeu extends JFrame {
      */
     public void ajouterChat(String message) {
         chat.ajouterChat(message);
+    }
+
+    /**
+     * Affiche les informations de la demande de pause.
+     *
+     * @param mot le mot trouvé
+     */
+    public void ajouterPause(PauseClient pc) {
+        if (pc.isPause()) {
+            chat.ajouterChat(String.format(
+                    "%s a demandé la pause, il reste %d demandes avant que le serveur démare une pause.",
+                    pc.getAuteur(), pc.getRestants()));
+        } else {
+            chat.ajouterChat(String.format(
+                    "%s a annulé sa demande de pause, il reste %d demandes avant que le serveur démare une pause.",
+                    pc.getAuteur(), pc.getRestants()));
+        }
     }
 
     /**
@@ -261,5 +283,13 @@ public class AffichageJeu extends JFrame {
 
     public void setMotsATrouver(int nombreMots) {
         this.infos.setNombreMotsTotal(nombreMots);
+    }
+
+    public void setPoints(int points) {
+        this.infos.setPoints(points);
+    }
+
+    public void setManche(int nombreManche) {
+        this.infos.setManche(nombreManche);
     }
 }

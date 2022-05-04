@@ -9,11 +9,17 @@ import com.boggle.client.Client;
 import com.boggle.serveur.Serveur;
 import com.boggle.serveur.jeu.ConfigurationClient;
 import com.boggle.serveur.jeu.ConfigurationServeur;
+import com.boggle.serveur.jeu.Historique;
 import com.boggle.util.ConnexionServeurException;
+import com.boggle.util.Defaults;
 import com.boggle.util.Logger;
 import com.boggle.util.Util;
+import com.google.gson.Gson;
 import java.awt.*;
+import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Scanner;
 import javax.swing.UIManager;
 
 /** lancement du jeu */
@@ -45,10 +51,12 @@ public class App {
         ArgumentsMain argsMain = new ArgumentsMain();
         ArgumentsClient argsClient = new ArgumentsClient();
         ArgumentsServeur argsServeur = new ArgumentsServeur();
+        ArgumentsHistorique argsHistorique = new ArgumentsHistorique();
         var jc = JCommander.newBuilder()
                 .addObject(argsMain)
                 .addCommand("client", argsClient)
                 .addCommand("serveur", argsServeur)
+                .addCommand("historique", argsHistorique)
                 .build();
         try {
             jc.parse(args);
@@ -76,6 +84,39 @@ public class App {
                     new Serveur(configServeur);
                 } catch (IOException e) {
                     logger.error("Impossible de créer un serveur.");
+                }
+            } else if (jc.getParsedCommand().equals("historique")) {
+                File histDir = new File(Defaults.getDossierHistorique());
+                if (!histDir.exists()) {
+                    System.out.println("Le dossier d'historique n'existe pas.");
+                    System.exit(1);
+                }
+                Gson gson = new Gson();
+                var files = histDir.listFiles();
+                Arrays.sort(files, (f1, f2) -> {
+                    try {
+                        return Long.compare(f2.lastModified(), f1.lastModified());
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                });
+                int i = 0;
+                for (File f : files) {
+                    if (i++ == argsHistorique.getNombreDeParties()) {
+                        break;
+                    }
+                    try {
+                        var scanner = new Scanner(f);
+                        String content = "";
+                        while (scanner.hasNextLine()) {
+                            content += scanner.nextLine();
+                        }
+                        scanner.close();
+                        Historique h = gson.fromJson(content, Historique.class);
+                        h.print(f.getName(), argsHistorique.getAfficherMots(), argsHistorique.getNombreDeJoueurs());
+                    } catch (IOException e) {
+                        logger.error("Impossible de lire le fichier d'historique.");
+                    }
                 }
             } else {
                 afficheHelp(jc);
@@ -120,5 +161,34 @@ class ArgumentsServeur {
 
     public int getJoueursMax() {
         return joueursMax;
+    }
+}
+
+class ArgumentsHistorique {
+    @Parameter(
+            names = {"-n", "--nombre-de-parties"},
+            description = "Nombres de parties sur lequel afficher l'historique")
+    private int nombreDeParties = 10;
+
+    @Parameter(
+            names = {"-j", "--nombre-de-joueurs"},
+            description = "Nombres de joueurs à afficher par partie")
+    private int nombreDeJoueurs = 10;
+
+    @Parameter(
+            names = {"-m", "--afficher-mots"},
+            description = "Afficher les mots qu'on trouvés les joueurs à chaque partie")
+    private boolean afficherMots = false;
+
+    public int getNombreDeParties() {
+        return nombreDeParties;
+    }
+
+    public int getNombreDeJoueurs() {
+        return nombreDeJoueurs;
+    }
+
+    public boolean getAfficherMots() {
+        return afficherMots;
     }
 }

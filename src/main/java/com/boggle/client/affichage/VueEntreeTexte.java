@@ -1,11 +1,12 @@
 package com.boggle.client.affichage;
 
 import com.boggle.client.AffichageJeu;
+import com.boggle.client.Client.Serveur;
 import java.awt.*;
 import javax.swing.*;
 
 public class VueEntreeTexte extends JTextField {
-    public VueEntreeTexte(AffichageJeu affichageJeu) {
+    public VueEntreeTexte(AffichageJeu affichageJeu, Serveur serveur) {
         super();
 
         this.setPreferredSize(new Dimension(400, 100));
@@ -13,14 +14,23 @@ public class VueEntreeTexte extends JTextField {
         addActionListener((ac) -> {
             String mot = ac.getActionCommand();
 
-            if (mot.charAt(0) == '/') {
-                switch (mot.substring(1)) {
-                    case "lobby":
-                        affichageJeu.lobby();
-                        break;
+            if (mot.length() > 0) {
+                if (mot.startsWith("/")) {
+                    String commande = mot.substring(1);
+                    switch (commande) {
+                        case "pause":
+                            serveur.pause(true);
+                            break;
+                        case "unpause":
+                            serveur.pause(false);
+                            break;
+                        case "lobby":
+                            affichageJeu.lobby();
+                            break;
+                    }
+                } else {
+                    serveur.envoyerMotClavier(mot);
                 }
-            } else if (mot.length() > 0) {
-                affichageJeu.envoyerMotClavier(mot);
             }
         });
     }

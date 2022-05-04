@@ -14,29 +14,11 @@ public class BattleRoyale extends Normal {
     }
 
     public void nouvelleManche() {
-        demarrerManche(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue));
-        if (dureeManche != 0) {
-            Thread t = new Thread() {
-                public void run() {
-                    try {
-                        Thread.sleep(dureeManche * 1000);
-                        eliminerDerniers();
-                        finirManche();
-                        if (!estFini()) {
-                            Thread.sleep(10000);
-                            nouvelleManche();
-                        } else {
-                            finirJeu();
-                        }
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            };
-            t.start();
-        } else {
-            // TODO: implémenter une manche sans minuteur (par vote ?)
-        }
+        demarrerManche(new Manche(this.tailleVerticale, this.tailleHorizontale, this.dureeManche, this.langue, this));
+    }
+
+    public void finDeManche() {
+        eliminerDerniers();
     }
 
     private void eliminerDerniers() {

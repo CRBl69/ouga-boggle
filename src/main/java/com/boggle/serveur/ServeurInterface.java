@@ -1,6 +1,8 @@
 package com.boggle.serveur;
 
-public interface ServeurInterface {
+import java.io.Serializable;
+
+public interface ServeurInterface extends Serializable {
     public void annoncerDebutPartie();
 
     public void annoncerFinPartie();
