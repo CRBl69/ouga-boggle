@@ -22,12 +22,12 @@ public class Grille implements Serializable {
      * @param lignes nombre de lignes de la grille
      * @param langue la langue choisie
      */
-    public Grille(int colonnes, int lignes, Langue langue) {
+    public Grille(int lignes, int colonnes, Langue langue) {
         if (colonnes < 1 || lignes < 1) throw new IllegalArgumentException();
         this.colonnes = colonnes;
         this.lignes = lignes;
         this.langueChoisi = langue;
-        grille = new Lettre[colonnes][lignes];
+        grille = new Lettre[lignes][colonnes];
         this.langue = switch (langue) {
             case FR -> new GenerateurLettreFR();
             case EN -> new GenerateurLettreEN();

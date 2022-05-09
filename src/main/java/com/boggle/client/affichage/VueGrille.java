@@ -38,12 +38,12 @@ public class VueGrille extends JPanel {
      * @param lettres nouvelles lettres
      */
     public void miseAJour(String[][] lettres) {
-        var gridLayout = new GridLayout(lettres[0].length, lettres.length);
+        var gridLayout = new GridLayout(lettres.length, lettres[0].length);
         gridLayout.setHgap(25);
         gridLayout.setVgap(25);
         setLayout(gridLayout);
         removeAll();
-        contenu = new VueCase[lettres[0].length][lettres.length];
+        contenu = new VueCase[lettres.length][lettres[0].length];
         for (int i = 0; i < lettres.length; i++) {
             for (int j = 0; j < lettres[0].length; j++) {
                 VueCase c = new VueCase(new Lettre(new Coordonnee(i, j), lettres[i][j]), vet, envoyeur);

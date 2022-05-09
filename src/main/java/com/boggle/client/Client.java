@@ -299,6 +299,9 @@ public class Client {
     /** Ouvre la fenêtre du lobby et ferme la fenêtre du jeu */
     public void lobby() {
         this.affichageJeu.setVisible(false);
+        if (this.affichageStatus == null) {
+            affichageStatus = new AffichageStatus(this);
+        }
         this.affichageStatus.unpret();
         this.affichageStatus.setVisible(true);
     }
